@@ -13,6 +13,7 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/go-acme/lego/v4/providers/dns/huaweicloud/internal"
@@ -131,7 +132,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("huaweicloud: could not find zone for domain %q: %w", domain, err)
 	}
@@ -189,7 +190,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("huaweicloud: unknown record ID for '%s' '%s'", info.EffectiveFQDN, token)
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("huaweicloud: could not find zone for domain %q: %w", domain, err)
 	}

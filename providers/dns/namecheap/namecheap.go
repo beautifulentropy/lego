@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -234,7 +235,7 @@ type pseudoRecord struct {
 
 // newPseudoRecord builds a challenge record from a domain name and a challenge authentication key.
 func newPseudoRecord(domain, keyAuth string) (*pseudoRecord, error) {
-	domain = dns01.UnFqdn(domain)
+	domain = dnsrecord.UnFqdn(domain)
 
 	tld, _ := publicsuffix.PublicSuffix(domain)
 	if tld == domain {

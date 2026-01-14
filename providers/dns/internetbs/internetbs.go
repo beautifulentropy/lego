@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internetbs/internal"
@@ -108,7 +109,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	query := internal.RecordQuery{
-		FullRecordName: dns01.UnFqdn(info.EffectiveFQDN),
+		FullRecordName: dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:           "TXT",
 		Value:          info.Value,
 		TTL:            d.config.TTL,
@@ -127,7 +128,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	query := internal.RecordQuery{
-		FullRecordName: dns01.UnFqdn(info.EffectiveFQDN),
+		FullRecordName: dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:           "TXT",
 		Value:          info.Value,
 		TTL:            d.config.TTL,

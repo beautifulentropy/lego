@@ -1,6 +1,6 @@
 //go:build !windows
 
-package dns01
+package dnsrecord
 
 import "time"
 

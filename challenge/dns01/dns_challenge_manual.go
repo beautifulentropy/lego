@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 )
 
 const (
@@ -28,7 +30,7 @@ func NewDNSProviderManual() (*DNSProviderManual, error) {
 func (*DNSProviderManual) Present(domain, token, keyAuth string) error {
 	info := GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("manual: could not find zone: %w", err)
 	}
@@ -49,7 +51,7 @@ func (*DNSProviderManual) Present(domain, token, keyAuth string) error {
 func (*DNSProviderManual) CleanUp(domain, token, keyAuth string) error {
 	info := GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("manual: could not find zone: %w", err)
 	}

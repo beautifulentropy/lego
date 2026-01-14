@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
 	"github.com/volcengine/volc-sdk-golang/base"
@@ -126,7 +127,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("volcengine: get zone ID: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, ptr.Deref(zone.ZoneName))
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, ptr.Deref(zone.ZoneName))
 	if err != nil {
 		return fmt.Errorf("volcengine: %w", err)
 	}
@@ -179,9 +180,9 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 func (d *DNSProvider) getZone(ctx context.Context, fqdn string) (volc.TopZoneResponse, error) {
-	for domain := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for domain := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		lzr := &volc.ListZonesRequest{
-			Key:        ptr.Pointer(dns01.UnFqdn(domain)),
+			Key:        ptr.Pointer(dnsrecord.UnFqdn(domain)),
 			SearchMode: ptr.Pointer("exact"),
 		}
 

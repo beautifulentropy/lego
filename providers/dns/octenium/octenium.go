@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -108,7 +109,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("octenium: could not find zone for domain '%s': %w", domain, err)
 	}
@@ -183,7 +184,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) getDomainID(ctx context.Context, authZone string) (string, error) {
-	domains, err := d.client.ListDomains(ctx, dns01.UnFqdn(authZone))
+	domains, err := d.client.ListDomains(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return "", fmt.Errorf("list domains: %w", err)
 	}

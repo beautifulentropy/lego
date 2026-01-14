@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/cpanel/internal/cpanel"
 	"github.com/go-acme/lego/v4/providers/dns/cpanel/internal/shared"
@@ -128,12 +129,12 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	ctx := context.Background()
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("arvancloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	zone := dns01.UnFqdn(authZone)
+	zone := dnsrecord.UnFqdn(authZone)
 
 	zoneInfo, err := d.client.FetchZoneInformation(ctx, zone)
 	if err != nil {
@@ -206,12 +207,12 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	ctx := context.Background()
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("arvancloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	zone := dns01.UnFqdn(authZone)
+	zone := dnsrecord.UnFqdn(authZone)
 
 	zoneInfo, err := d.client.FetchZoneInformation(ctx, zone)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/miekg/dns"
@@ -112,7 +113,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("aurora: could not find zone for domain %q: %w", domain, err)
 	}
@@ -126,7 +127,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	subdomain := info.EffectiveFQDN[0 : len(info.EffectiveFQDN)-len(authZone)-1]
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zone, err := d.getZoneInformationByName(authZone)
 	if err != nil {
@@ -164,12 +165,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("aurora: unknown recordID for %q", info.EffectiveFQDN)
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
+	authZone, err := dnsrecord.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("aurora: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zone, err := d.getZoneInformationByName(authZone)
 	if err != nil {

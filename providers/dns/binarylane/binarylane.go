@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/binarylane/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -99,12 +100,12 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("binarylane: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("binarylane: %w", err)
 	}
@@ -116,7 +117,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		TTL:  d.config.TTL,
 	}
 
-	response, err := d.client.CreateRecord(context.Background(), dns01.UnFqdn(authZone), record)
+	response, err := d.client.CreateRecord(context.Background(), dnsrecord.UnFqdn(authZone), record)
 	if err != nil {
 		return fmt.Errorf("binarylane: create record: %w", err)
 	}
@@ -132,7 +133,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("binarylane: could not find zone for domain %q: %w", domain, err)
 	}
@@ -146,7 +147,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("binarylane: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	err = d.client.DeleteRecord(context.Background(), dns01.UnFqdn(authZone), recordID)
+	err = d.client.DeleteRecord(context.Background(), dnsrecord.UnFqdn(authZone), recordID)
 	if err != nil {
 		return fmt.Errorf("binarylane: delete record: %w", err)
 	}

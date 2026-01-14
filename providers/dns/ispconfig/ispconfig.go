@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/ispconfig/internal"
@@ -209,7 +210,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) findZone(ctx context.Context, sessionID, fqdn string) (int, error) {
-	for domain := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for domain := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		zoneID, err := d.client.GetZoneID(ctx, sessionID, domain)
 		if err == nil {
 			return zoneID, nil

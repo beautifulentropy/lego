@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -106,7 +107,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("netcup: could not find zone for domain %q: %w", domain, err)
 	}
@@ -130,7 +131,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		Destination: info.Value,
 	}
 
-	zone = dns01.UnFqdn(zone)
+	zone = dnsrecord.UnFqdn(zone)
 
 	records, err := d.client.GetDNSRecords(ctx, zone)
 	if err != nil {
@@ -152,7 +153,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("netcup: could not find zone for domain %q: %w", domain, err)
 	}
@@ -171,7 +172,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	hostname := strings.Replace(info.EffectiveFQDN, "."+zone, "", 1)
 
-	zone = dns01.UnFqdn(zone)
+	zone = dnsrecord.UnFqdn(zone)
 
 	records, err := d.client.GetDNSRecords(ctx, zone)
 	if err != nil {

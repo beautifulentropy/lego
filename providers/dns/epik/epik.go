@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/epik/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -103,12 +104,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	// find authZone
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("epik: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("epik: %w", err)
 	}
@@ -120,7 +121,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		TTL:  d.config.TTL,
 	}
 
-	_, err = d.client.CreateHostRecord(context.Background(), dns01.UnFqdn(authZone), record)
+	_, err = d.client.CreateHostRecord(context.Background(), dnsrecord.UnFqdn(authZone), record)
 	if err != nil {
 		return fmt.Errorf("epik: %w", err)
 	}
@@ -133,12 +134,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	// find authZone
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("epik: could not find zone for domain %q: %w", domain, err)
 	}
 
-	dom := dns01.UnFqdn(authZone)
+	dom := dnsrecord.UnFqdn(authZone)
 
 	ctx := context.Background()
 
@@ -147,7 +148,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("epik: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("epik: %w", err)
 	}

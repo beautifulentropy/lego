@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/hurricane/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -98,7 +99,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.UpdateTxtRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	err := d.client.UpdateTxtRecord(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("hurricane: %w", err)
 	}
@@ -110,7 +111,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.UpdateTxtRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), ".")
+	err := d.client.UpdateTxtRecord(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), ".")
 	if err != nil {
 		return fmt.Errorf("hurricane: %w", err)
 	}

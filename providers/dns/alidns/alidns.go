@@ -13,6 +13,7 @@ import (
 	alidns "github.com/go-acme/alidns-20150109/v4/client"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
 	"golang.org/x/net/idna"
@@ -228,7 +229,7 @@ func (d *DNSProvider) getHostedZone(ctx context.Context, domain string) (string,
 		startPage++
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dnsrecord.FindZoneByFqdn(domain)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone: %w", err)
 	}
@@ -236,7 +237,7 @@ func (d *DNSProvider) getHostedZone(ctx context.Context, domain string) (string,
 	var hostedZone *alidns.DescribeDomainsResponseBodyDomainsDomain
 
 	for _, zone := range domains {
-		if ptr.Deref(zone.DomainName) == dns01.UnFqdn(authZone) || ptr.Deref(zone.PunyCode) == dns01.UnFqdn(authZone) {
+		if ptr.Deref(zone.DomainName) == dnsrecord.UnFqdn(authZone) || ptr.Deref(zone.PunyCode) == dnsrecord.UnFqdn(authZone) {
 			hostedZone = zone
 		}
 	}
@@ -299,7 +300,7 @@ func extractRecordName(fqdn, zone string) (string, error) {
 		return "", fmt.Errorf("fail to convert punycode: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, asciiDomain)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, asciiDomain)
 	if err != nil {
 		return "", err
 	}

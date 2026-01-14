@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/domeneshop/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -147,15 +148,15 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 
 // splitDomain splits the hostname from the authoritative zone, and returns both parts (non-fqdn).
 func (d *DNSProvider) splitDomain(fqdn string) (string, string, error) {
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", "", fmt.Errorf("could not find zone: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zone)
 	if err != nil {
 		return "", "", err
 	}
 
-	return dns01.UnFqdn(zone), subDomain, nil
+	return dnsrecord.UnFqdn(zone), subDomain, nil
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/gandi/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -117,7 +118,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		client:              client,
 		inProgressFQDNs:     make(map[string]inProgressInfo),
 		inProgressAuthZones: make(map[string]struct{}),
-		findZoneByFqdn:      dns01.FindZoneByFqdn,
+		findZoneByFqdn:      dnsrecord.FindZoneByFqdn,
 	}, nil
 }
 
@@ -145,7 +146,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	// determine name of TXT record
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("gandi: %w", err)
 	}
@@ -161,7 +162,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	// perform API actions to create and activate new gandi zone
 	// containing the required TXT record
-	newZoneName := fmt.Sprintf("%s [ACME Challenge %s]", dns01.UnFqdn(authZone), time.Now().Format(time.RFC822Z))
+	newZoneName := fmt.Sprintf("%s [ACME Challenge %s]", dnsrecord.UnFqdn(authZone), time.Now().Format(time.RFC822Z))
 
 	newZoneID, err := d.client.CloneZone(ctx, zoneID, newZoneName)
 	if err != nil {

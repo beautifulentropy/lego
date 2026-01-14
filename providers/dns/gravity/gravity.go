@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/gravity/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -118,7 +119,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("gravity: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("gravity: %w", err)
 	}
@@ -189,7 +190,7 @@ func (d *DNSProvider) Sequential() time.Duration {
 func (d *DNSProvider) findZone(ctx context.Context, effectiveFQDN string) (string, error) {
 	var zone string
 
-	for fqdn := range dns01.DomainsSeq(effectiveFQDN) {
+	for fqdn := range dnsrecord.DomainsSeq(effectiveFQDN) {
 		zones, err := d.client.GetDNSZones(ctx, fqdn)
 		if err != nil {
 			return "", fmt.Errorf("get DNS zones: %w", err)

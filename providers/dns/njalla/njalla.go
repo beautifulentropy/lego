@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/njalla/internal"
@@ -116,8 +117,8 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	record := internal.Record{
-		Name:    subDomain,                // TODO need to be tested
-		Domain:  dns01.UnFqdn(rootDomain), // TODO need to be tested
+		Name:    subDomain,                    // TODO need to be tested
+		Domain:  dnsrecord.UnFqdn(rootDomain), // TODO need to be tested
 		Content: info.Value,
 		TTL:     d.config.TTL,
 		Type:    "TXT",
@@ -153,7 +154,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("njalla: unknown record ID for '%s' '%s'", info.EffectiveFQDN, token)
 	}
 
-	err = d.client.RemoveRecord(context.Background(), recordID, dns01.UnFqdn(rootDomain))
+	err = d.client.RemoveRecord(context.Background(), recordID, dnsrecord.UnFqdn(rootDomain))
 	if err != nil {
 		return fmt.Errorf("njalla: failed to delete TXT records: fqdn=%s, recordID=%s: %w", info.EffectiveFQDN, recordID, err)
 	}

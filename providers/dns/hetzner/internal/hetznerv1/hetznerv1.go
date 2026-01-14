@@ -11,6 +11,7 @@ import (
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/go-acme/lego/v4/providers/dns/hetzner/internal/hetznerv1/internal"
@@ -102,22 +103,22 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hetzner: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("hetzner: %w", err)
 	}
 
-	subDomainPunnycoded, err := idna.ToASCII(dns01.UnFqdn(subDomain))
+	subDomainPunnycoded, err := idna.ToASCII(dnsrecord.UnFqdn(subDomain))
 	if err != nil {
 		return fmt.Errorf("hetzner: %w", err)
 	}
 
-	zone, err := idna.ToASCII(dns01.UnFqdn(authZone))
+	zone, err := idna.ToASCII(dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("hetzner: %w", err)
 	}
@@ -143,22 +144,22 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hetzner: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("hetzner: %w", err)
 	}
 
-	subDomainPunnycoded, err := idna.ToASCII(dns01.UnFqdn(subDomain))
+	subDomainPunnycoded, err := idna.ToASCII(dnsrecord.UnFqdn(subDomain))
 	if err != nil {
 		return fmt.Errorf("hetzner: %w", err)
 	}
 
-	zone, err := idna.ToASCII(dns01.UnFqdn(authZone))
+	zone, err := idna.ToASCII(dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("hetzner: %w", err)
 	}

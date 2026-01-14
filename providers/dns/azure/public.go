@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 )
 
 // dnsProviderPublic implements the challenge.Provider interface for Azure Public Zone DNS.
@@ -38,7 +39,7 @@ func (d *dnsProviderPublic) Present(domain, token, keyAuth string) error {
 	rsc := dns.NewRecordSetsClientWithBaseURI(d.config.ResourceManagerEndpoint, d.config.SubscriptionID)
 	rsc.Authorizer = d.authorizer
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("azure: %w", err)
 	}
@@ -96,7 +97,7 @@ func (d *dnsProviderPublic) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("azure: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("azure: %w", err)
 	}
@@ -118,7 +119,7 @@ func (d *dnsProviderPublic) getHostedZoneID(ctx context.Context, fqdn string) (s
 		return d.config.ZoneName, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone: %w", err)
 	}
@@ -126,7 +127,7 @@ func (d *dnsProviderPublic) getHostedZoneID(ctx context.Context, fqdn string) (s
 	dc := dns.NewZonesClientWithBaseURI(d.config.ResourceManagerEndpoint, d.config.SubscriptionID)
 	dc.Authorizer = d.authorizer
 
-	zone, err := dc.Get(ctx, d.config.ResourceGroup, dns01.UnFqdn(authZone))
+	zone, err := dc.Get(ctx, d.config.ResourceGroup, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return "", err
 	}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/hostinger/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -95,12 +96,12 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hostinger: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("hostinger: %w", err)
 	}
@@ -119,7 +120,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		}},
 	}
 
-	err = d.client.UpdateDNSRecords(ctx, dns01.UnFqdn(authZone), request)
+	err = d.client.UpdateDNSRecords(ctx, dnsrecord.UnFqdn(authZone), request)
 	if err != nil {
 		return fmt.Errorf("hostinger: update DNS records (add): %w", err)
 	}
@@ -131,12 +132,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hostinger: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("hostinger: %w", err)
 	}
@@ -166,7 +167,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 			Zone:      []internal.RecordSet{recordSet},
 		}
 
-		err = d.client.UpdateDNSRecords(ctx, dns01.UnFqdn(authZone), request)
+		err = d.client.UpdateDNSRecords(ctx, dnsrecord.UnFqdn(authZone), request)
 		if err != nil {
 			return fmt.Errorf("hostinger: update DNS records (delete): %w", err)
 		}
@@ -179,7 +180,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		Type: "TXT",
 	}}
 
-	err = d.client.DeleteDNSRecords(ctx, dns01.UnFqdn(authZone), filters)
+	err = d.client.DeleteDNSRecords(ctx, dnsrecord.UnFqdn(authZone), filters)
 	if err != nil {
 		return fmt.Errorf("hostinger: delete DNS records: %w", err)
 	}
@@ -194,7 +195,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) findRecordSet(ctx context.Context, authZone, subDomain string) (internal.RecordSet, error) {
-	recordSets, err := d.client.GetDNSRecords(ctx, dns01.UnFqdn(authZone))
+	recordSets, err := d.client.GetDNSRecords(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return internal.RecordSet{}, fmt.Errorf("get DNS records: %w", err)
 	}

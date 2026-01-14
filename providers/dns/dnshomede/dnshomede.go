@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/dnshomede/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -107,7 +108,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.Add(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	err := d.client.Add(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("dnshomede: %w", err)
 	}
@@ -119,7 +120,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.Remove(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	err := d.client.Remove(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("dnshomede: %w", err)
 	}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/go-acme/lego/v4/providers/dns/f5xc/internal"
@@ -111,17 +112,17 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("f5xc: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("f5xc: %w", err)
 	}
 
-	existingRRSet, err := d.client.GetRRSet(ctx, dns01.UnFqdn(authZone), d.config.GroupName, subDomain, "TXT")
+	existingRRSet, err := d.client.GetRRSet(ctx, dnsrecord.UnFqdn(authZone), d.config.GroupName, subDomain, "TXT")
 	if err != nil {
 		return fmt.Errorf("f5xc: get RR Set: %w", err)
 	}
@@ -138,7 +139,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		}
 
 		return d.waitFor(ctx, func() error {
-			_, err = d.client.CreateRRSet(ctx, dns01.UnFqdn(authZone), d.config.GroupName, rrSet)
+			_, err = d.client.CreateRRSet(ctx, dnsrecord.UnFqdn(authZone), d.config.GroupName, rrSet)
 			if err != nil {
 				return fmt.Errorf("create RR set: %w", err)
 			}
@@ -151,7 +152,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	existingRRSet.RRSet.TXTRecord.Values = append(existingRRSet.RRSet.TXTRecord.Values, info.Value)
 
 	return d.waitFor(ctx, func() error {
-		_, err = d.client.ReplaceRRSet(ctx, dns01.UnFqdn(authZone), d.config.GroupName, subDomain, "TXT", existingRRSet.RRSet)
+		_, err = d.client.ReplaceRRSet(ctx, dnsrecord.UnFqdn(authZone), d.config.GroupName, subDomain, "TXT", existingRRSet.RRSet)
 		if err != nil {
 			return fmt.Errorf("replace RR set: %w", err)
 		}
@@ -176,17 +177,17 @@ func (d *DNSProvider) waitFor(ctx context.Context, operation func() error) error
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("f5xc: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("f5xc: %w", err)
 	}
 
-	_, err = d.client.DeleteRRSet(context.Background(), dns01.UnFqdn(authZone), d.config.GroupName, subDomain, "TXT")
+	_, err = d.client.DeleteRRSet(context.Background(), dnsrecord.UnFqdn(authZone), d.config.GroupName, subDomain, "TXT")
 	if err != nil {
 		return fmt.Errorf("f5xc: delete RR set: %w", err)
 	}

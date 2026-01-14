@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/axelname/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -97,12 +98,12 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("axelname: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("axelname: %w", err)
 	}
@@ -113,7 +114,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		Value: info.Value,
 	}
 
-	err = d.client.AddRecord(context.Background(), dns01.UnFqdn(authZone), record)
+	err = d.client.AddRecord(context.Background(), dnsrecord.UnFqdn(authZone), record)
 	if err != nil {
 		return fmt.Errorf("axelname: add record: %w", err)
 	}
@@ -127,12 +128,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("axelname: could not find zone for domain %q: %w", domain, err)
 	}
 
-	records, err := d.client.ListRecords(ctx, dns01.UnFqdn(authZone))
+	records, err := d.client.ListRecords(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("axelname: list records: %w", err)
 	}
@@ -142,7 +143,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 			continue
 		}
 
-		err = d.client.DeleteRecord(ctx, dns01.UnFqdn(authZone), record)
+		err = d.client.DeleteRecord(ctx, dnsrecord.UnFqdn(authZone), record)
 		if err != nil {
 			return fmt.Errorf("axelname: delete record: %w", err)
 		}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/challenge/http01"
 	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v4/lego"
@@ -142,7 +143,7 @@ func setupDNS(ctx *cli.Context, client *lego.Client) error {
 
 	err = client.Challenge.SetDNS01Provider(provider,
 		dns01.CondOption(len(servers) > 0,
-			dns01.AddRecursiveNameservers(dns01.ParseNameservers(ctx.StringSlice(flgDNSResolvers)))),
+			dns01.AddRecursiveNameservers(dnsrecord.ParseNameservers(ctx.StringSlice(flgDNSResolvers)))),
 
 		dns01.CondOption(ctx.Bool(flgDNSDisableCP) || ctx.Bool(flgDNSPropagationDisableANS),
 			dns01.DisableAuthoritativeNssPropagationRequirement()),

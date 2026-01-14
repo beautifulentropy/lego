@@ -1,4 +1,4 @@
-package dns01
+package dnsrecord
 
 import (
 	"strings"
@@ -6,8 +6,8 @@ import (
 	"github.com/miekg/dns"
 )
 
-// Update FQDN with CNAME if any.
-func updateDomainWithCName(r *dns.Msg, fqdn string) string {
+// UpdateDomainWithCName FQDN with CNAME if any.
+func UpdateDomainWithCName(r *dns.Msg, fqdn string) string {
 	for _, rr := range r.Answer {
 		if cn, ok := rr.(*dns.CNAME); ok {
 			if strings.EqualFold(cn.Hdr.Name, fqdn) {

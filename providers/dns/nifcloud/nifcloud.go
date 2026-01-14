@@ -12,6 +12,7 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -144,12 +145,12 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) changeRecord(ctx context.Context, action, fqdn, value string, ttl int) error {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return fmt.Errorf("could not find zone: %w", err)
 	}
 
-	name := dns01.UnFqdn(fqdn)
+	name := dnsrecord.UnFqdn(fqdn)
 	if authZone == fqdn {
 		name = "@"
 	}
@@ -180,7 +181,7 @@ func (d *DNSProvider) changeRecord(ctx context.Context, action, fqdn, value stri
 		},
 	}
 
-	resp, err := d.client.ChangeResourceRecordSets(ctx, dns01.UnFqdn(authZone), reqParams)
+	resp, err := d.client.ChangeResourceRecordSets(ctx, dnsrecord.UnFqdn(authZone), reqParams)
 	if err != nil {
 		return fmt.Errorf("failed to change record set: %w", err)
 	}

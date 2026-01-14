@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -83,12 +84,12 @@ func (d *dmapiProvider) Timeout() (timeout, interval time.Duration) {
 func (d *dmapiProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("joker: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("joker: %w", err)
 	}
@@ -121,12 +122,12 @@ func (d *dmapiProvider) Present(domain, token, keyAuth string) error {
 func (d *dmapiProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("joker: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("joker: %w", err)
 	}

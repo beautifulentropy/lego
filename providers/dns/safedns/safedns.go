@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/safedns/internal"
@@ -110,13 +111,13 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
+	zone, err := dnsrecord.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("safedns: could not find zone for domain %q: %w", domain, err)
 	}
 
 	record := internal.Record{
-		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:    "TXT",
 		Content: fmt.Sprintf("%q", info.Value),
 		TTL:     d.config.TTL,
@@ -138,7 +139,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("safedns: could not find zone for domain %q: %w", domain, err)
 	}

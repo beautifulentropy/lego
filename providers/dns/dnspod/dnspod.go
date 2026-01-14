@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/dnspod-go"
@@ -151,7 +152,7 @@ func (d *DNSProvider) getHostedZone(domain string) (string, string, error) {
 		return "", "", fmt.Errorf("API call failed: %w", err)
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dnsrecord.FindZoneByFqdn(domain)
 	if err != nil {
 		return "", "", fmt.Errorf("could not find zone: %w", err)
 	}
@@ -159,7 +160,7 @@ func (d *DNSProvider) getHostedZone(domain string) (string, string, error) {
 	var hostedZone dnspod.Domain
 
 	for _, zone := range zones {
-		if zone.Name == dns01.UnFqdn(authZone) {
+		if zone.Name == dnsrecord.UnFqdn(authZone) {
 			hostedZone = zone
 		}
 	}
@@ -172,7 +173,7 @@ func (d *DNSProvider) getHostedZone(domain string) (string, string, error) {
 }
 
 func (d *DNSProvider) newTxtRecord(zone, fqdn, value string, ttl int) (*dnspod.Record, error) {
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zone)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +188,7 @@ func (d *DNSProvider) newTxtRecord(zone, fqdn, value string, ttl int) (*dnspod.R
 }
 
 func (d *DNSProvider) findTxtRecords(fqdn, zoneID, zoneName string) ([]dnspod.Record, error) {
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneName)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zoneName)
 	if err != nil {
 		return nil, err
 	}

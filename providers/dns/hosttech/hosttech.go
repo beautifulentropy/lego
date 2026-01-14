@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/hosttech/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -108,19 +109,19 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hosttech: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
 
-	zone, err := d.client.GetZone(ctx, dns01.UnFqdn(authZone))
+	zone, err := d.client.GetZone(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("hosttech: could not find zone for domain %q (%s): %w", domain, authZone, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("hosttech: %w", err)
 	}
@@ -148,14 +149,14 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hosttech: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
 
-	zone, err := d.client.GetZone(ctx, dns01.UnFqdn(authZone))
+	zone, err := d.client.GetZone(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("hosttech: could not find zone for domain %q (%s): %w", domain, authZone, err)
 	}

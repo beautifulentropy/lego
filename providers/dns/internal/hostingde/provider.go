@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/hostingde/internal"
 )
@@ -99,7 +100,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	rec := []internal.DNSRecord{{
 		Type:    "TXT",
-		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Content: info.Value,
 		TTL:     d.config.TTL,
 	}}
@@ -115,7 +116,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	for _, record := range response.Records {
-		if record.Name == dns01.UnFqdn(info.EffectiveFQDN) && record.Content == fmt.Sprintf(`%q`, info.Value) {
+		if record.Name == dnsrecord.UnFqdn(info.EffectiveFQDN) && record.Content == fmt.Sprintf(`%q`, info.Value) {
 			d.recordIDsMu.Lock()
 			d.recordIDs[info.EffectiveFQDN] = record.ID
 			d.recordIDsMu.Unlock()
@@ -156,7 +157,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	rec := []internal.DNSRecord{{
 		Type:    "TXT",
-		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Content: `"` + info.Value + `"`,
 	}}
 
@@ -183,7 +184,7 @@ func (d *DNSProvider) getZoneName(fqdn string) (string, error) {
 		return d.config.ZoneName, nil
 	}
 
-	zoneName, err := dns01.FindZoneByFqdn(fqdn)
+	zoneName, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for %s: %w", fqdn, err)
 	}
@@ -192,5 +193,5 @@ func (d *DNSProvider) getZoneName(fqdn string) (string, error) {
 		return "", errors.New("empty zone name")
 	}
 
-	return dns01.UnFqdn(zoneName), nil
+	return dnsrecord.UnFqdn(zoneName), nil
 }

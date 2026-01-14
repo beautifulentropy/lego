@@ -13,6 +13,7 @@ import (
 	"github.com/exoscale/egoscale/v3/credentials"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/useragent"
@@ -228,14 +229,14 @@ func (d *DNSProvider) findExistingRecordID(ctx context.Context, zoneID egoscale.
 
 // findZoneAndRecordName Extract DNS zone and DNS entry name.
 func (d *DNSProvider) findZoneAndRecordName(fqdn string) (string, string, error) {
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", "", fmt.Errorf("could not find zone: %w", err)
 	}
 
-	zone = dns01.UnFqdn(zone)
+	zone = dnsrecord.UnFqdn(zone)
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zone)
 	if err != nil {
 		return "", "", err
 	}

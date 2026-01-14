@@ -13,6 +13,7 @@ import (
 	"github.com/aliyun/credentials-go/credentials"
 	esa "github.com/go-acme/esa-20240910/v2/client"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
 )
@@ -171,7 +172,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	crReq := new(esa.CreateRecordRequest).
 		SetSiteId(siteID).
 		SetType("TXT").
-		SetRecordName(dns01.UnFqdn(info.EffectiveFQDN)).
+		SetRecordName(dnsrecord.UnFqdn(info.EffectiveFQDN)).
 		SetTtl(int32(d.config.TTL)).
 		SetData(new(esa.CreateRecordRequestData).SetValue(info.Value))
 
@@ -226,13 +227,13 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) getSiteID(ctx context.Context, fqdn string) (int64, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return 0, fmt.Errorf("aliesa: could not find zone for domain %q: %w", fqdn, err)
 	}
 
 	lsReq := new(esa.ListSitesRequest).
-		SetSiteName(dns01.UnFqdn(authZone)).
+		SetSiteName(dnsrecord.UnFqdn(authZone)).
 		SetSiteSearchType("suffix")
 
 	// https://www.alibabacloud.com/help/en/edge-security-acceleration/esa/api-esa-2024-09-10-listsites
@@ -241,8 +242,8 @@ func (d *DNSProvider) getSiteID(ctx context.Context, fqdn string) (int64, error)
 		return 0, fmt.Errorf("list sites: %w", err)
 	}
 
-	for f := range dns01.UnFqdnDomainsSeq(fqdn) {
-		domain := dns01.UnFqdn(f)
+	for f := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
+		domain := dnsrecord.UnFqdn(f)
 
 		for _, site := range lsResp.Body.GetSites() {
 			if ptr.Deref(site.GetSiteName()) == domain {

@@ -12,6 +12,7 @@ import (
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/challenge"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/miekg/dns"
@@ -127,7 +128,7 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 		timeout, interval = DefaultPropagationTimeout, DefaultPollingInterval
 	}
 
-	log.Infof("[%s] acme: Checking DNS record propagation. [nameservers=%s]", domain, strings.Join(recursiveNameservers, ","))
+	log.Infof("[%s] acme: Checking DNS record propagation. [nameservers=%s]", domain, strings.Join(dnsrecord.RecursiveNameservers, ","))
 
 	time.Sleep(interval)
 
@@ -223,7 +224,7 @@ func getChallengeFQDN(domain string, followCNAME bool) string {
 	// recursion counter so it doesn't spin out of control
 	for range 50 {
 		// Keep following CNAMEs
-		r, err := dnsQuery(fqdn, dns.TypeCNAME, recursiveNameservers, true)
+		r, err := dnsrecord.DNSQuery(fqdn, dns.TypeCNAME, dnsrecord.RecursiveNameservers, true)
 
 		if err != nil || r.Rcode != dns.RcodeSuccess {
 			// No more CNAME records to follow, exit
@@ -231,7 +232,7 @@ func getChallengeFQDN(domain string, followCNAME bool) string {
 		}
 
 		// Check if the domain has CNAME then use that
-		cname := updateDomainWithCName(r, fqdn)
+		cname := dnsrecord.UpdateDomainWithCName(r, fqdn)
 		if cname == fqdn {
 			break
 		}
@@ -242,4 +243,18 @@ func getChallengeFQDN(domain string, followCNAME bool) string {
 	}
 
 	return fqdn
+}
+
+func AddDNSTimeout(timeout time.Duration) ChallengeOption {
+	return func(_ *Challenge) error {
+		dnsrecord.SetDNSTimeout(timeout)
+		return nil
+	}
+}
+
+func AddRecursiveNameservers(nameservers []string) ChallengeOption {
+	return func(_ *Challenge) error {
+		dnsrecord.SetRecursiveNameservers(nameservers)
+		return nil
+	}
 }

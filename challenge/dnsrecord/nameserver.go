@@ -1,4 +1,4 @@
-package dns01
+package dnsrecord
 
 import (
 	"errors"
@@ -23,8 +23,8 @@ var defaultNameservers = []string{
 	"google-public-dns-b.google.com:53",
 }
 
-// recursiveNameservers are used to pre-check DNS propagation.
-var recursiveNameservers = getNameservers(defaultResolvConf, defaultNameservers)
+// RecursiveNameservers are used to pre-check DNS propagation.
+var RecursiveNameservers = getNameservers(defaultResolvConf, defaultNameservers)
 
 // soaCacheEntry holds a cached SOA record (only selected fields).
 type soaCacheEntry struct {
@@ -55,20 +55,6 @@ func ClearFqdnCache() {
 	})
 }
 
-func AddDNSTimeout(timeout time.Duration) ChallengeOption {
-	return func(_ *Challenge) error {
-		dnsTimeout = timeout
-		return nil
-	}
-}
-
-func AddRecursiveNameservers(nameservers []string) ChallengeOption {
-	return func(_ *Challenge) error {
-		recursiveNameservers = ParseNameservers(nameservers)
-		return nil
-	}
-}
-
 // getNameservers attempts to get systems nameservers before falling back to the defaults.
 func getNameservers(path string, defaults []string) []string {
 	config, err := dns.ClientConfigFromFile(path)
@@ -94,8 +80,8 @@ func ParseNameservers(servers []string) []string {
 	return resolvers
 }
 
-// lookupNameservers returns the authoritative nameservers for the given fqdn.
-func lookupNameservers(fqdn string) ([]string, error) {
+// LookupNameservers returns the authoritative nameservers for the given fqdn.
+func LookupNameservers(fqdn string) ([]string, error) {
 	var authoritativeNss []string
 
 	zone, err := FindZoneByFqdn(fqdn)
@@ -103,7 +89,7 @@ func lookupNameservers(fqdn string) ([]string, error) {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}
 
-	r, err := dnsQuery(zone, dns.TypeNS, recursiveNameservers, true)
+	r, err := DNSQuery(zone, dns.TypeNS, RecursiveNameservers, true)
 	if err != nil {
 		return nil, fmt.Errorf("NS call failed: %w", err)
 	}
@@ -124,7 +110,7 @@ func lookupNameservers(fqdn string) ([]string, error) {
 // FindPrimaryNsByFqdn determines the primary nameserver of the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
 func FindPrimaryNsByFqdn(fqdn string) (string, error) {
-	return FindPrimaryNsByFqdnCustom(fqdn, recursiveNameservers)
+	return FindPrimaryNsByFqdnCustom(fqdn, RecursiveNameservers)
 }
 
 // FindPrimaryNsByFqdnCustom determines the primary nameserver of the zone apex for the given fqdn
@@ -141,7 +127,7 @@ func FindPrimaryNsByFqdnCustom(fqdn string, nameservers []string) (string, error
 // FindZoneByFqdn determines the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
 func FindZoneByFqdn(fqdn string) (string, error) {
-	return FindZoneByFqdnCustom(fqdn, recursiveNameservers)
+	return FindZoneByFqdnCustom(fqdn, RecursiveNameservers)
 }
 
 // FindZoneByFqdnCustom determines the zone apex for the given fqdn
@@ -182,7 +168,7 @@ func fetchSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) {
 	)
 
 	for domain := range DomainsSeq(fqdn) {
-		r, err = dnsQuery(domain, dns.TypeSOA, nameservers, true)
+		r, err = DNSQuery(domain, dns.TypeSOA, nameservers, true)
 		if err != nil {
 			continue
 		}
@@ -228,7 +214,8 @@ func dnsMsgContainsCNAME(msg *dns.Msg) bool {
 	})
 }
 
-func dnsQuery(fqdn string, rtype uint16, nameservers []string, recursive bool) (*dns.Msg, error) {
+// DNSQuery performs a DNS query of the given type against the provided nameservers.
+func DNSQuery(fqdn string, rtype uint16, nameservers []string, recursive bool) (*dns.Msg, error) {
 	m := createDNSMsg(fqdn, rtype, recursive)
 
 	if len(nameservers) == 0 {
@@ -351,4 +338,14 @@ func formatQuestions(questions []dns.Question) string {
 	}
 
 	return strings.Join(parts, ";")
+}
+
+// SetRecursiveNameservers overrides the default recursive nameservers used for DNS lookups.
+func SetRecursiveNameservers(nameservers []string) {
+	RecursiveNameservers = ParseNameservers(nameservers)
+}
+
+// SetDNSTimeout overrides the default timeout for DNS queries.
+func SetDNSTimeout(timeout time.Duration) {
+	dnsTimeout = timeout
 }

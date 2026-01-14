@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/porkbun"
@@ -134,7 +135,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	recordID, err := d.client.CreateRecord(ctx, dns01.UnFqdn(zoneName), record)
+	recordID, err := d.client.CreateRecord(ctx, dnsrecord.UnFqdn(zoneName), record)
 	if err != nil {
 		return fmt.Errorf("porkbun: failed to create record: %w", err)
 	}
@@ -166,7 +167,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	err = d.client.DeleteRecord(ctx, dns01.UnFqdn(zoneName), recordID)
+	err = d.client.DeleteRecord(ctx, dnsrecord.UnFqdn(zoneName), recordID)
 	if err != nil {
 		return fmt.Errorf("porkbun: failed to delete record: %w", err)
 	}
@@ -180,12 +181,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 // splitDomain splits the hostname from the authoritative zone, and returns both parts.
 func splitDomain(fqdn string) (string, string, error) {
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", "", fmt.Errorf("could not find zone: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zone)
 	if err != nil {
 		return "", "", err
 	}

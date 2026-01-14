@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/nrdcg/goinwx"
@@ -99,7 +100,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("inwx: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
@@ -122,8 +123,8 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	request := &goinwx.NameserverRecordRequest{
-		Domain:  dns01.UnFqdn(authZone),
-		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Domain:  dnsrecord.UnFqdn(authZone),
+		Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:    "TXT",
 		Content: info.Value,
 		TTL:     d.config.TTL,
@@ -146,7 +147,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("inwx: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
@@ -169,8 +170,8 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 
 	response, err := d.client.Nameservers.Info(&goinwx.NameserverInfoRequest{
-		Domain: dns01.UnFqdn(authZone),
-		Name:   dns01.UnFqdn(info.EffectiveFQDN),
+		Domain: dnsrecord.UnFqdn(authZone),
+		Name:   dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:   "TXT",
 	})
 	if err != nil {

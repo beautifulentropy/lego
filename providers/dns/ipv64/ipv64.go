@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/ipv64/internal"
@@ -95,7 +96,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	sub, root, err := splitDomain(dns01.UnFqdn(info.EffectiveFQDN))
+	sub, root, err := splitDomain(dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("ipv64: %w", err)
 	}
@@ -112,7 +113,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	sub, root, err := splitDomain(dns01.UnFqdn(info.EffectiveFQDN))
+	sub, root, err := splitDomain(dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("ipv64: %w", err)
 	}

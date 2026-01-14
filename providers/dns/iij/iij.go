@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/iij/doapi"
 	"github.com/iij/doapi/protocol"
@@ -228,7 +229,7 @@ func (d *DNSProvider) listZones() ([]string, error) {
 }
 
 func splitDomain(domain string, zones []string) (string, string, error) {
-	base := dns01.UnFqdn(domain)
+	base := dnsrecord.UnFqdn(domain)
 
 	for _, index := range dns.Split(base) {
 		zone := base[index:]
@@ -239,7 +240,7 @@ func splitDomain(domain string, zones []string) (string, string, error) {
 				baseOwner = "." + baseOwner
 			}
 
-			return "_acme-challenge" + dns01.UnFqdn(baseOwner), zone, nil
+			return "_acme-challenge" + dnsrecord.UnFqdn(baseOwner), zone, nil
 		}
 	}
 

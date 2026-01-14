@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/sacloud/iaas-api-go"
 	"github.com/sacloud/iaas-api-go/search"
 )
@@ -23,7 +23,7 @@ func (d *DNSProvider) addTXTRecord(ctx context.Context, fqdn, value string, ttl 
 		return err
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zone.Name)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (d *DNSProvider) cleanupTXTRecord(ctx context.Context, fqdn, value string) 
 		return err
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zone.Name)
 	if err != nil {
 		return err
 	}
@@ -82,12 +82,12 @@ func (d *DNSProvider) cleanupTXTRecord(ctx context.Context, fqdn, value string) 
 }
 
 func (d *DNSProvider) getHostedZone(ctx context.Context, domain string) (*iaas.DNS, error) {
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dnsrecord.FindZoneByFqdn(domain)
 	if err != nil {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}
 
-	zoneName := dns01.UnFqdn(authZone)
+	zoneName := dnsrecord.UnFqdn(authZone)
 
 	conditions := &iaas.FindCondition{
 		Filter: search.Filter{

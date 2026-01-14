@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	lw "github.com/liquidweb/liquidweb-go/client"
 	"github.com/liquidweb/liquidweb-go/network"
@@ -121,7 +122,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	params := &network.DNSRecordParams{
-		Name:  dns01.UnFqdn(info.EffectiveFQDN),
+		Name:  dnsrecord.UnFqdn(info.EffectiveFQDN),
 		RData: strconv.Quote(info.Value),
 		Type:  "TXT",
 		Zone:  d.config.Zone,

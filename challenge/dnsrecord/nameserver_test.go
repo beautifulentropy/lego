@@ -1,4 +1,4 @@
-package dns01
+package dnsrecord
 
 import (
 	"errors"
@@ -67,7 +67,7 @@ func Test_lookupNameserversOK(t *testing.T) {
 		t.Run(test.fqdn, func(t *testing.T) {
 			useAsNameserver(t, test.fakeDNSServer.Build(t))
 
-			nss, err := lookupNameservers(test.fqdn)
+			nss, err := LookupNameservers(test.fqdn)
 			require.NoError(t, err)
 
 			sort.Strings(nss)
@@ -114,7 +114,7 @@ func Test_lookupNameserversErr(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			useAsNameserver(t, test.fakeDNSServer.Build(t))
 
-			_, err := lookupNameservers(test.fqdn)
+			_, err := LookupNameservers(test.fqdn)
 			require.Error(t, err)
 			assert.EqualError(t, err, test.error)
 		})

@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	ionos "github.com/go-acme/lego/v4/providers/dns/internal/ionos/internal"
 )
@@ -84,7 +85,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("failed to get zones: %w", err)
 	}
 
-	name := dns01.UnFqdn(info.EffectiveFQDN)
+	name := dnsrecord.UnFqdn(info.EffectiveFQDN)
 
 	zone := findZone(zones, name)
 	if zone == nil {
@@ -127,7 +128,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return fmt.Errorf("failed to get zones: %w", err)
 	}
 
-	name := dns01.UnFqdn(info.EffectiveFQDN)
+	name := dnsrecord.UnFqdn(info.EffectiveFQDN)
 
 	zone := findZone(zones, name)
 	if zone == nil {

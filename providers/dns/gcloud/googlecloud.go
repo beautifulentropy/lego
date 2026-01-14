@@ -15,6 +15,7 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
@@ -382,7 +383,7 @@ func (d *DNSProvider) lookupHostedZoneID(domain string) (string, []*gdns.Managed
 		return zone.DnsName, []*gdns.ManagedZone{zone}, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(dns.Fqdn(domain))
+	authZone, err := dnsrecord.FindZoneByFqdn(dns.Fqdn(domain))
 	if err != nil {
 		return "", nil, fmt.Errorf("could not find zone: %w", err)
 	}

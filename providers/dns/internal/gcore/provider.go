@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/gcore/internal"
 )
@@ -76,7 +77,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 		return err
 	}
 
-	err = d.client.AddRRSet(ctx, zone, dns01.UnFqdn(info.EffectiveFQDN), info.Value, d.config.TTL)
+	err = d.client.AddRRSet(ctx, zone, dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("add txt record: %w", err)
 	}
@@ -95,7 +96,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return err
 	}
 
-	err = d.client.DeleteRRSet(ctx, zone, dns01.UnFqdn(info.EffectiveFQDN))
+	err = d.client.DeleteRRSet(ctx, zone, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("remove txt record: %w", err)
 	}
@@ -112,7 +113,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) guessZone(ctx context.Context, fqdn string) (string, error) {
 	var lastErr error
 
-	for zone := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for zone := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		dnsZone, err := d.client.GetZone(ctx, zone)
 		if err != nil {
 			lastErr = err

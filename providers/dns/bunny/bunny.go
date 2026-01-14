@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
@@ -118,12 +119,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	zone, err := d.findZone(ctx, dns01.UnFqdn(info.EffectiveFQDN))
+	zone, err := d.findZone(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("bunny: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, ptr.Deref(zone.Domain))
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, ptr.Deref(zone.Domain))
 	if err != nil {
 		return fmt.Errorf("bunny: %w", err)
 	}
@@ -148,12 +149,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	zone, err := d.findZone(ctx, dns01.UnFqdn(info.EffectiveFQDN))
+	zone, err := d.findZone(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("bunny: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, ptr.Deref(zone.Domain))
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, ptr.Deref(zone.Domain))
 	if err != nil {
 		return fmt.Errorf("bunny: %w", err)
 	}
@@ -222,13 +223,13 @@ func possibleDomains(domain string) []string {
 	var domains []string
 
 	tld, _ := publicsuffix.PublicSuffix(domain)
-	for d := range dns01.DomainsSeq(domain) {
+	for d := range dnsrecord.DomainsSeq(domain) {
 		if tld == d {
 			// skip the TLD
 			break
 		}
 
-		domains = append(domains, dns01.UnFqdn(d))
+		domains = append(domains, dnsrecord.UnFqdn(d))
 	}
 
 	return domains

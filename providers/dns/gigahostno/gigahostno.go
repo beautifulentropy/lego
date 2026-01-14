@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/gigahostno/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -129,7 +130,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("gigahostno: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
 	if err != nil {
 		return fmt.Errorf("gigahostno: %w", err)
 	}
@@ -167,7 +168,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("gigahostno: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
 	if err != nil {
 		return fmt.Errorf("gigahostno: %w", err)
 	}
@@ -221,7 +222,7 @@ func (d *DNSProvider) findZone(ctx context.Context, fqdn string) (*internal.Zone
 		return nil, fmt.Errorf("get zones: %w", err)
 	}
 
-	for d := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for d := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		for _, zone := range zones {
 			if zone.Name == d && zone.Active == "1" {
 				return &zone, nil

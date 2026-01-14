@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
 )
@@ -67,7 +67,7 @@ func (c *Client) GetZone(ctx context.Context, domain string) (*Response, error) 
 		return nil, errors.New("must be logged in to get zone")
 	}
 
-	return c.postRequest(ctx, "dns-zone-get", url.Values{"domain": {dns01.UnFqdn(domain)}})
+	return c.postRequest(ctx, "dns-zone-get", url.Values{"domain": {dnsrecord.UnFqdn(domain)}})
 }
 
 // PutZone uploads DNS zone to Joker DMAPI.
@@ -76,7 +76,7 @@ func (c *Client) PutZone(ctx context.Context, domain, zone string) (*Response, e
 		return nil, errors.New("must be logged in to put zone")
 	}
 
-	return c.postRequest(ctx, "dns-zone-put", url.Values{"domain": {dns01.UnFqdn(domain)}, "zone": {strings.TrimSpace(zone)}})
+	return c.postRequest(ctx, "dns-zone-put", url.Values{"domain": {dnsrecord.UnFqdn(domain)}, "zone": {strings.TrimSpace(zone)}})
 }
 
 // postRequest performs actual HTTP request.

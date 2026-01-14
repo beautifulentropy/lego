@@ -8,6 +8,7 @@ import (
 
 	baidudns "github.com/baidubce/bce-sdk-go/services/dns"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
 )
@@ -91,12 +92,12 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("baiducloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("baiducloud: %w", err)
 	}
@@ -109,7 +110,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		Ttl:         ptr.Pointer(int32(d.config.TTL)),
 	}
 
-	err = d.client.CreateRecord(dns01.UnFqdn(authZone), crr, "")
+	err = d.client.CreateRecord(dnsrecord.UnFqdn(authZone), crr, "")
 	if err != nil {
 		return fmt.Errorf("baiducloud: create record: %w", err)
 	}
@@ -121,17 +122,17 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("baiducloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	recordID, err := d.findRecordID(dns01.UnFqdn(authZone), info.Value)
+	recordID, err := d.findRecordID(dnsrecord.UnFqdn(authZone), info.Value)
 	if err != nil {
 		return fmt.Errorf("baiducloud: find record: %w", err)
 	}
 
-	err = d.client.DeleteRecord(dns01.UnFqdn(authZone), recordID, "")
+	err = d.client.DeleteRecord(dnsrecord.UnFqdn(authZone), recordID, "")
 	if err != nil {
 		return fmt.Errorf("baiducloud: delete record: %w", err)
 	}

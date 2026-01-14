@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/selfhostde/internal"
@@ -152,7 +153,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	recordID, err := d.config.getSeqNext(dns01.UnFqdn(info.EffectiveFQDN))
+	recordID, err := d.config.getSeqNext(dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("selfhostde: %w", err)
 	}
@@ -178,7 +179,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	d.recordIDsMu.Unlock()
 
 	if !ok {
-		return fmt.Errorf("selfhostde: unknown record ID for %q", dns01.UnFqdn(info.EffectiveFQDN))
+		return fmt.Errorf("selfhostde: unknown record ID for %q", dnsrecord.UnFqdn(info.EffectiveFQDN))
 	}
 
 	err := d.client.UpdateTXTRecord(context.Background(), recordID, "empty")

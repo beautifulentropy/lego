@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/nicru/internal"
@@ -108,19 +109,19 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("nicru: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zone, err := d.findZone(ctx, authZone)
 	if err != nil {
 		return fmt.Errorf("nicru: find zone: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("nicru: %w", err)
 	}
@@ -166,19 +167,19 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("nicru: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zone, err := d.findZone(ctx, authZone)
 	if err != nil {
 		return fmt.Errorf("nicru: find zone: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("nicru: %w", err)
 	}
@@ -188,7 +189,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return fmt.Errorf("nicru: get records: %w", err)
 	}
 
-	subDomain = dns01.UnFqdn(subDomain)
+	subDomain = dnsrecord.UnFqdn(subDomain)
 
 	for _, record := range records {
 		if record.TXT == nil {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/yandex360/internal"
@@ -112,17 +113,17 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
+	authZone, err := dnsrecord.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("yandex360: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("yandex360: %w", err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	record := internal.Record{
 		Name: subDomain,
@@ -147,12 +148,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
+	authZone, err := dnsrecord.FindZoneByFqdn(dns.Fqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("yandex360: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	d.recordIDsMu.Lock()
 	recordID, ok := d.recordIDs[token]

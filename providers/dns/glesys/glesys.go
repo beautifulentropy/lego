@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/glesys/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -114,12 +115,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	// find authZone
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("glesys: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("glesys: %w", err)
 	}
@@ -129,7 +130,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	defer d.inProgressMu.Unlock()
 
 	// add TXT record into authZone
-	recordID, err := d.client.AddTXTRecord(context.Background(), dns01.UnFqdn(authZone), subDomain, info.Value, d.config.TTL)
+	recordID, err := d.client.AddTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), subDomain, info.Value, d.config.TTL)
 	if err != nil {
 		return err
 	}

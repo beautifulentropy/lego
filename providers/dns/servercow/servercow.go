@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/servercow/internal"
@@ -116,7 +117,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("servercow: %w", err)
 	}
 
-	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	recordName, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("servercow: %w", err)
 	}
@@ -175,7 +176,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("servercow: failed to get TXT records: %w", err)
 	}
 
-	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	recordName, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("servercow: %w", err)
 	}
@@ -220,12 +221,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 func getAuthZone(domain string) (string, error) {
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dnsrecord.FindZoneByFqdn(domain)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone: %w", err)
 	}
 
-	return dns01.UnFqdn(authZone), nil
+	return dnsrecord.UnFqdn(authZone), nil
 }
 
 func findRecords(records []internal.Record, name string) *internal.Record {

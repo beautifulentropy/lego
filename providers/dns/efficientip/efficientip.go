@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/efficientip/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -128,7 +129,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	ctx := context.Background()
 
 	r := internal.ResourceRecord{
-		RRName:      dns01.UnFqdn(info.EffectiveFQDN),
+		RRName:      dnsrecord.UnFqdn(info.EffectiveFQDN),
 		RRType:      "TXT",
 		Value1:      info.Value,
 		DNSName:     d.config.DNSName,
@@ -149,7 +150,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	ctx := context.Background()
 
 	params := internal.DeleteInputParameters{
-		RRName:      dns01.UnFqdn(info.EffectiveFQDN),
+		RRName:      dnsrecord.UnFqdn(info.EffectiveFQDN),
 		RRType:      "TXT",
 		RRValue1:    info.Value,
 		DNSName:     d.config.DNSName,

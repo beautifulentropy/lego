@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/infomaniak/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -120,7 +121,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	ikDomain, err := d.client.GetDomainByName(ctx, dns01.UnFqdn(info.EffectiveFQDN))
+	ikDomain, err := d.client.GetDomainByName(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("infomaniak: could not get domain %q: %w", info.EffectiveFQDN, err)
 	}
@@ -129,7 +130,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	d.domainIDs[token] = ikDomain.ID
 	d.domainIDsMu.Unlock()
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, ikDomain.CustomerName)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, ikDomain.CustomerName)
 	if err != nil {
 		return fmt.Errorf("infomaniak: %w", err)
 	}
@@ -175,7 +176,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	err := d.client.DeleteDNSRecord(context.Background(), domainID, recordID)
 	if err != nil {
-		return fmt.Errorf("infomaniak: could not delete record %q: %w", dns01.UnFqdn(info.EffectiveFQDN), err)
+		return fmt.Errorf("infomaniak: could not delete record %q: %w", dnsrecord.UnFqdn(info.EffectiveFQDN), err)
 	}
 
 	// Delete record ID from map

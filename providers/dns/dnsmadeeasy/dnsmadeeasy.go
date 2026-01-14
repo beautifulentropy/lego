@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/dnsmadeeasy/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -134,7 +135,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domainName, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domainName, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("dnsmadeeasy: could not find zone for domain %q: %w", domainName, err)
 	}
@@ -163,7 +164,7 @@ func (d *DNSProvider) Present(domainName, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domainName, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domainName, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("dnsmadeeasy: could not find zone for domain %q: %w", domainName, err)
 	}

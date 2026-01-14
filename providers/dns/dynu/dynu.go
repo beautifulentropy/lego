@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/dynu/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -105,24 +106,24 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	rootDomain, err := d.client.GetRootDomain(ctx, dns01.UnFqdn(info.EffectiveFQDN))
+	rootDomain, err := d.client.GetRootDomain(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("dynu: could not find root domain for %s: %w", domain, err)
 	}
 
-	records, err := d.client.GetRecords(ctx, dns01.UnFqdn(info.EffectiveFQDN), "TXT")
+	records, err := d.client.GetRecords(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN), "TXT")
 	if err != nil {
 		return fmt.Errorf("dynu: failed to get records for %s: %w", domain, err)
 	}
 
 	for _, record := range records {
 		// the record already exist
-		if record.Hostname == dns01.UnFqdn(info.EffectiveFQDN) && record.TextData == info.Value {
+		if record.Hostname == dnsrecord.UnFqdn(info.EffectiveFQDN) && record.TextData == info.Value {
 			return nil
 		}
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, rootDomain.DomainName)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, rootDomain.DomainName)
 	if err != nil {
 		return fmt.Errorf("dynu: %w", err)
 	}
@@ -130,7 +131,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	record := internal.DNSRecord{
 		Type:       "TXT",
 		DomainName: rootDomain.DomainName,
-		Hostname:   dns01.UnFqdn(info.EffectiveFQDN),
+		Hostname:   dnsrecord.UnFqdn(info.EffectiveFQDN),
 		NodeName:   subDomain,
 		TextData:   info.Value,
 		State:      true,
@@ -151,18 +152,18 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	rootDomain, err := d.client.GetRootDomain(ctx, dns01.UnFqdn(info.EffectiveFQDN))
+	rootDomain, err := d.client.GetRootDomain(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("dynu: could not find root domain for %s: %w", domain, err)
 	}
 
-	records, err := d.client.GetRecords(ctx, dns01.UnFqdn(info.EffectiveFQDN), "TXT")
+	records, err := d.client.GetRecords(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN), "TXT")
 	if err != nil {
 		return fmt.Errorf("dynu: failed to get records for %s: %w", domain, err)
 	}
 
 	for _, record := range records {
-		if record.Hostname == dns01.UnFqdn(info.EffectiveFQDN) && record.TextData == info.Value {
+		if record.Hostname == dnsrecord.UnFqdn(info.EffectiveFQDN) && record.TextData == info.Value {
 			err = d.client.DeleteRecord(ctx, rootDomain.ID, record.ID)
 			if err != nil {
 				return fmt.Errorf("dynu: failed to remove TXT record for %s: %w", domain, err)

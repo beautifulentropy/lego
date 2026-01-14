@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/providers/dns/internal/active24/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 )
@@ -60,17 +61,17 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return err
 	}
 
-	serviceID, err := d.findServiceID(ctx, dns01.UnFqdn(authZone))
+	serviceID, err := d.findServiceID(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("find service ID: %w", err)
 	}
@@ -96,12 +97,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("could not find zone for domain %q: %w", domain, err)
 	}
 
-	serviceID, err := d.findServiceID(ctx, dns01.UnFqdn(authZone))
+	serviceID, err := d.findServiceID(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("find service ID: %w", err)
 	}
@@ -149,7 +150,7 @@ func (d *DNSProvider) findServiceID(ctx context.Context, domain string) (int, er
 func (d *DNSProvider) findRecordID(ctx context.Context, serviceID string, info dns01.ChallengeInfo) (int, error) {
 	// NOTE(ldez): Despite the API documentation, the filter doesn't seem to work.
 	filter := internal.RecordFilter{
-		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:    []string{"TXT"},
 		Content: info.Value,
 	}
@@ -164,7 +165,7 @@ func (d *DNSProvider) findRecordID(ctx context.Context, serviceID string, info d
 			continue
 		}
 
-		if record.Name != dns01.UnFqdn(info.EffectiveFQDN) {
+		if record.Name != dnsrecord.UnFqdn(info.EffectiveFQDN) {
 			continue
 		}
 

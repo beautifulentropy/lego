@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/sonic/internal"
@@ -101,7 +102,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.SetRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value, d.config.TTL)
+	err := d.client.SetRecord(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("sonic: unable to create record for %s: %w", info.EffectiveFQDN, err)
 	}
@@ -113,7 +114,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.SetRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), "_", d.config.TTL)
+	err := d.client.SetRecord(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), "_", d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("sonic: unable to clean record for %s: %w", info.EffectiveFQDN, err)
 	}

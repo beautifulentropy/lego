@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 )
 
 const (
@@ -111,7 +111,7 @@ func getZoneName(config *Config, fqdn string) (string, error) {
 		return config.ZoneName, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for %s: %w", fqdn, err)
 	}

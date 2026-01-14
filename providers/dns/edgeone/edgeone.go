@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
 	teo "github.com/go-acme/tencentedgdeone/v20220901"
@@ -136,7 +137,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("edgeone: failed to get hosted zone: %w", err)
 	}
 
-	punnyCoded, err := idna.ToASCII(dns01.UnFqdn(info.EffectiveFQDN))
+	punnyCoded, err := idna.ToASCII(dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("edgeone: fail to convert punycode: %w", err)
 	}

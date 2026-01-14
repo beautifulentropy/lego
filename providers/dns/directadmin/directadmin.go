@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/directadmin/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -120,7 +121,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("directadmin: [domain: %q] %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("directadmin: %w", err)
 	}
@@ -132,7 +133,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		TTL:   d.config.TTL,
 	}
 
-	err = d.client.SetRecord(context.Background(), dns01.UnFqdn(authZone), record)
+	err = d.client.SetRecord(context.Background(), dnsrecord.UnFqdn(authZone), record)
 	if err != nil {
 		return fmt.Errorf("directadmin: set record for zone %s and subdomain %s: %w", authZone, subDomain, err)
 	}
@@ -149,7 +150,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("directadmin: [domain: %q] %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("directadmin: %w", err)
 	}
@@ -160,7 +161,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		Value: info.Value,
 	}
 
-	err = d.client.DeleteRecord(context.Background(), dns01.UnFqdn(authZone), record)
+	err = d.client.DeleteRecord(context.Background(), dnsrecord.UnFqdn(authZone), record)
 	if err != nil {
 		return fmt.Errorf("directadmin: delete record for zone %s and subdomain %s: %w", authZone, subDomain, err)
 	}
@@ -173,7 +174,7 @@ func (d *DNSProvider) getZoneName(fqdn string) (string, error) {
 		return d.config.ZoneName, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for %s: %w", fqdn, err)
 	}

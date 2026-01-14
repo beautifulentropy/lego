@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/hostingnl/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -105,20 +106,20 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hostingnl: could not find zone for domain %q: %w", domain, err)
 	}
 
 	record := internal.Record{
-		Name:     dns01.UnFqdn(info.EffectiveFQDN),
+		Name:     dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:     "TXT",
 		Content:  strconv.Quote(info.Value),
 		TTL:      d.config.TTL,
 		Priority: 0,
 	}
 
-	newRecord, err := d.client.AddRecord(context.Background(), dns01.UnFqdn(authZone), record)
+	newRecord, err := d.client.AddRecord(context.Background(), dnsrecord.UnFqdn(authZone), record)
 	if err != nil {
 		return fmt.Errorf("hostingnl: failed to create TXT record, fqdn=%s: %w", info.EffectiveFQDN, err)
 	}
@@ -134,7 +135,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hostingnl: could not find zone for domain %q: %w", domain, err)
 	}
@@ -148,7 +149,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("hostingnl: unknown record ID for '%s' '%s'", info.EffectiveFQDN, token)
 	}
 
-	err = d.client.DeleteRecord(context.Background(), dns01.UnFqdn(authZone), recordID)
+	err = d.client.DeleteRecord(context.Background(), dnsrecord.UnFqdn(authZone), recordID)
 	if err != nil {
 		return fmt.Errorf("hostingnl: failed to delete TXT record, id=%s: %w", recordID, err)
 	}

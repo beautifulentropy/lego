@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	ycdnsproto "github.com/yandex-cloud/go-genproto/yandex/cloud/dns/v1"
 	ycdns "github.com/yandex-cloud/go-sdk/services/dns/v1"
@@ -109,7 +110,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("yandexcloud: could not find zone for domain %q: %w", domain, err)
 	}
@@ -133,7 +134,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("yandexcloud: cant find dns zone %s in yandex cloud", authZone)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("yandexcloud: %w", err)
 	}
@@ -150,7 +151,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("yandexcloud: could not find zone for domain %q: %w", domain, err)
 	}
@@ -174,7 +175,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return nil
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("yandexcloud: %w", err)
 	}

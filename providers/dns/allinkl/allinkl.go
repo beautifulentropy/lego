@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/allinkl/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -121,7 +122,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("allinkl: could not find zone for domain %q: %w", domain, err)
 	}
@@ -135,7 +136,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx = internal.WithContext(ctx, credential)
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("allinkl: %w", err)
 	}

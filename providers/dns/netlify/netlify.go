@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/netlify/internal"
@@ -108,15 +109,15 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("netlify: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	record := internal.DNSRecord{
-		Hostname: dns01.UnFqdn(info.EffectiveFQDN),
+		Hostname: dnsrecord.UnFqdn(info.EffectiveFQDN),
 		TTL:      d.config.TTL,
 		Type:     "TXT",
 		Value:    info.Value,
@@ -138,12 +139,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("netlify: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	// gets the record's unique ID from when we created it
 	d.recordIDsMu.Lock()

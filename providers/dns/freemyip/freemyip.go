@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/freemyip"
@@ -113,7 +114,7 @@ func (d *DNSProvider) Sequential() time.Duration {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, freemyip.RootDomain)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, freemyip.RootDomain)
 	if err != nil {
 		return fmt.Errorf("freemyip: %w", err)
 	}
@@ -130,7 +131,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, freemyip.RootDomain)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, freemyip.RootDomain)
 	if err != nil {
 		return fmt.Errorf("freemyip: %w", err)
 	}

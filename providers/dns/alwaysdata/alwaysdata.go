@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/alwaysdata/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -104,7 +105,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("alwaysdata: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
 	if err != nil {
 		return fmt.Errorf("alwaysdata: %w", err)
 	}
@@ -137,7 +138,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("alwaysdata: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
 	if err != nil {
 		return fmt.Errorf("alwaysdata: %w", err)
 	}
@@ -173,7 +174,7 @@ func (d *DNSProvider) findZone(ctx context.Context, fqdn string) (*internal.Doma
 		return nil, fmt.Errorf("list domains: %w", err)
 	}
 
-	for a := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for a := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		for _, domain := range domains {
 			if a == domain.Name {
 				return &domain, nil

@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/limacity/internal"
@@ -131,7 +132,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("limacity: find domain: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, dom.UnicodeFqdn)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, dom.UnicodeFqdn)
 	if err != nil {
 		return fmt.Errorf("limacity: %w", err)
 	}
@@ -201,8 +202,8 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 func findDomain(domains []internal.Domain, fqdn string) (internal.Domain, error) {
-	for f := range dns01.DomainsSeq(fqdn) {
-		domain := dns01.UnFqdn(f)
+	for f := range dnsrecord.DomainsSeq(fqdn) {
+		domain := dnsrecord.UnFqdn(f)
 
 		for _, dom := range domains {
 			if dom.UnicodeFqdn == domain || dom.UnicodeFqdn == f {

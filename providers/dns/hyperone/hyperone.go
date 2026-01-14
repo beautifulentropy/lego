@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/hyperone/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -197,7 +198,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 
 // getHostedZone gets the hosted zone.
 func (d *DNSProvider) getHostedZone(ctx context.Context, fqdn string) (*internal.Zone, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}

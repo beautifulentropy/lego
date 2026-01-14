@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/luadns/internal"
@@ -127,12 +128,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("luadns: failed to get zones: %w", err)
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("luadns: could not find zone for domain %q: %w", domain, err)
 	}
 
-	zone := findZone(zones, dns01.UnFqdn(authZone))
+	zone := findZone(zones, dnsrecord.UnFqdn(authZone))
 	if zone == nil {
 		return fmt.Errorf("luadns: no matching zone found for domain %s", domain)
 	}

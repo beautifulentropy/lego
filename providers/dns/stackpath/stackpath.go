@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -108,7 +109,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("stackpath: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Domain)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Domain)
 	if err != nil {
 		return fmt.Errorf("stackpath: %w", err)
 	}
@@ -134,7 +135,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("stackpath: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Domain)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Domain)
 	if err != nil {
 		return fmt.Errorf("stackpath: %w", err)
 	}

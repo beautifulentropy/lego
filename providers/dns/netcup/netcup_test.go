@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/tester"
 	"github.com/stretchr/testify/require"
 )
@@ -165,10 +166,10 @@ func TestLivePresentAndCleanup(t *testing.T) {
 
 	info := dns01.GetChallengeInfo(envTest.GetDomain(), "123d==")
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	require.NoError(t, err)
 
-	zone = dns01.UnFqdn(zone)
+	zone = dnsrecord.UnFqdn(zone)
 
 	testCases := []string{
 		zone,

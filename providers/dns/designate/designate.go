@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
@@ -300,7 +301,7 @@ func (d *DNSProvider) getZoneName(fqdn string) (string, error) {
 		return d.config.ZoneName, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for %s: %w", fqdn, err)
 	}

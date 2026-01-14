@@ -10,6 +10,7 @@ import (
 
 	"github.com/aziontech/azionapi-go-sdk/idns"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 )
@@ -234,7 +235,7 @@ func (d *DNSProvider) findZone(ctx context.Context, fqdn string) (*idns.Zone, er
 		return nil, errors.New("get zones: no results")
 	}
 
-	for domain := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for domain := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		for _, zone := range resp.GetResults() {
 			if zone.GetDomain() == domain {
 				return &zone, nil
@@ -294,7 +295,7 @@ func authContext(ctx context.Context, key string) context.Context {
 }
 
 func extractSubDomain(info dns01.ChallengeInfo, zone *idns.Zone) (string, error) {
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.GetName())
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.GetName())
 	if err != nil {
 		return "", err
 	}

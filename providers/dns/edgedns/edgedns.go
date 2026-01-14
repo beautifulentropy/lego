@@ -15,6 +15,7 @@ import (
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/v11/pkg/session"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 )
@@ -281,12 +282,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 func getZone(domain string) (string, error) {
-	zone, err := dns01.FindZoneByFqdn(domain)
+	zone, err := dnsrecord.FindZoneByFqdn(domain)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for FQDN %q: %w", domain, err)
 	}
 
-	return dns01.UnFqdn(zone), nil
+	return dnsrecord.UnFqdn(zone), nil
 }
 
 func containsValue(values []string, value string) bool {

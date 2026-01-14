@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -100,7 +101,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("ns1: %w", err)
 	}
 
-	record, _, err := d.client.Records.Get(zone.Zone, dns01.UnFqdn(info.EffectiveFQDN), "TXT")
+	record, _, err := d.client.Records.Get(zone.Zone, dnsrecord.UnFqdn(info.EffectiveFQDN), "TXT")
 
 	// Create a new record
 	if errors.Is(err, rest.ErrRecordMissing) || record == nil {
@@ -108,7 +109,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 		// Work through a bug in the NS1 API library that causes 400 Input validation failed (Value None for field '<obj>.filters' is not of type ...)
 		// So the `tags` and `blockedTags` parameters should be initialized to empty.
-		record = dns.NewRecord(zone.Zone, dns01.UnFqdn(info.EffectiveFQDN), "TXT", make(map[string]string), make([]string, 0))
+		record = dns.NewRecord(zone.Zone, dnsrecord.UnFqdn(info.EffectiveFQDN), "TXT", make(map[string]string), make([]string, 0))
 		record.TTL = d.config.TTL
 		record.Answers = []*dns.Answer{{Rdata: []string{info.Value}}}
 
@@ -146,7 +147,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("ns1: %w", err)
 	}
 
-	name := dns01.UnFqdn(info.EffectiveFQDN)
+	name := dnsrecord.UnFqdn(info.EffectiveFQDN)
 
 	_, err = d.client.Records.Delete(zone.Zone, name, "TXT")
 	if err != nil {
@@ -163,12 +164,12 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) getHostedZone(fqdn string) (*dns.Zone, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zone, _, err := d.client.Zones.Get(authZone, false)
 	if err != nil {

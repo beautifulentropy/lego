@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/namesilo"
@@ -96,14 +97,14 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("namesilo: could not find zone for domain %q: %w", domain, err)
 	}
 
-	zoneName := dns01.UnFqdn(zone)
+	zoneName := dnsrecord.UnFqdn(zone)
 
-	subdomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zoneName)
+	subdomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zoneName)
 	if err != nil {
 		return fmt.Errorf("namesilo: %w", err)
 	}
@@ -128,25 +129,25 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("namesilo: could not find zone for domain %q: %w", domain, err)
 	}
 
-	zoneName := dns01.UnFqdn(zone)
+	zoneName := dnsrecord.UnFqdn(zone)
 
 	resp, err := d.client.DnsListRecords(ctx, &namesilo.DnsListRecordsParams{Domain: zoneName})
 	if err != nil {
 		return fmt.Errorf("namesilo: %w", err)
 	}
 
-	subdomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zoneName)
+	subdomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zoneName)
 	if err != nil {
 		return fmt.Errorf("namesilo: %w", err)
 	}
 
 	for _, r := range resp.Reply.ResourceRecord {
-		if r.Type == "TXT" && r.Value == info.Value && (r.Host == subdomain || r.Host == dns01.UnFqdn(info.EffectiveFQDN)) {
+		if r.Type == "TXT" && r.Value == info.Value && (r.Host == subdomain || r.Host == dnsrecord.UnFqdn(info.EffectiveFQDN)) {
 			_, err := d.client.DnsDeleteRecord(ctx, &namesilo.DnsDeleteRecordParams{Domain: zoneName, ID: r.RecordID})
 			if err != nil {
 				return fmt.Errorf("namesilo: %w", err)

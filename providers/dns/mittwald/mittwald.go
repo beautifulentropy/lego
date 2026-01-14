@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/mittwald/internal"
@@ -194,7 +195,7 @@ func (d *DNSProvider) getOrCreateZone(ctx context.Context, fqdn string) (*intern
 	}
 
 	for _, zone := range zones {
-		if zone.Domain == dns01.UnFqdn(fqdn) {
+		if zone.Domain == dnsrecord.UnFqdn(fqdn) {
 			return &zone, nil
 		}
 	}
@@ -206,7 +207,7 @@ func (d *DNSProvider) getOrCreateZone(ctx context.Context, fqdn string) (*intern
 		return nil, fmt.Errorf("find zone: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, parentZone.Domain)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, parentZone.Domain)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +226,7 @@ func (d *DNSProvider) getOrCreateZone(ctx context.Context, fqdn string) (*intern
 }
 
 func findDomain(domains []internal.Domain, fqdn string) (internal.Domain, error) {
-	for domain := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for domain := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		for _, dom := range domains {
 			if dom.Domain == domain {
 				return dom, nil
@@ -237,7 +238,7 @@ func findDomain(domains []internal.Domain, fqdn string) (internal.Domain, error)
 }
 
 func findZone(zones []internal.DNSZone, fqdn string) (internal.DNSZone, error) {
-	for domain := range dns01.UnFqdnDomainsSeq(fqdn) {
+	for domain := range dnsrecord.UnFqdnDomainsSeq(fqdn) {
 		for _, zon := range zones {
 			if zon.Domain == domain {
 				return zon, nil

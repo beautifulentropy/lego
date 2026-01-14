@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/ionoscloud/internal"
@@ -103,12 +104,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ionoscloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	zones, err := d.client.RetrieveZones(ctx, dns01.UnFqdn(authZone))
+	zones, err := d.client.RetrieveZones(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("ionoscloud: retrieve zones: %w", err)
 	}
@@ -117,7 +118,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("ionoscloud: zone ID not found for domain %q", domain)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("ionoscloud: %w", err)
 	}

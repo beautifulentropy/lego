@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/rimuhosting/internal"
 )
@@ -71,13 +72,13 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	records, err := d.client.FindTXTRecords(ctx, dns01.UnFqdn(info.EffectiveFQDN))
+	records, err := d.client.FindTXTRecords(ctx, dnsrecord.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
 		return fmt.Errorf("failed to find record(s) for %s: %w", domain, err)
 	}
 
 	actions := []internal.ActionParameter{
-		internal.NewAddRecordAction(dns01.UnFqdn(info.EffectiveFQDN), info.Value, d.config.TTL),
+		internal.NewAddRecordAction(dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value, d.config.TTL),
 	}
 
 	for _, record := range records {
@@ -96,7 +97,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	action := internal.NewDeleteRecordAction(dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	action := internal.NewDeleteRecordAction(dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 
 	_, err := d.client.DoActions(context.Background(), action)
 	if err != nil {

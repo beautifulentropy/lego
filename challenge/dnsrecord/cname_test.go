@@ -1,4 +1,4 @@
-package dns01
+package dnsrecord
 
 import (
 	"strings"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_updateDomainWithCName_caseInsensitive(t *testing.T) {
+func Test_UpdateDomainWithCName_caseInsensitive(t *testing.T) {
 	qname := "_acme-challenge.uppercase-test.example.com."
 	cnameTarget := "_acme-challenge.uppercase-test.cname-target.example.com."
 
@@ -29,7 +29,7 @@ func Test_updateDomainWithCName_caseInsensitive(t *testing.T) {
 		},
 	}
 
-	fqdn := updateDomainWithCName(msg, qname)
+	fqdn := UpdateDomainWithCName(msg, qname)
 
 	assert.Equal(t, cnameTarget, fqdn)
 }

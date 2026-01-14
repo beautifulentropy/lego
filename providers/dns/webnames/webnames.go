@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/webnames/internal"
@@ -95,20 +96,20 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("webnamesru: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("webnamesru: %w", err)
 	}
 
-	err = d.client.AddTXTRecord(context.Background(), dns01.UnFqdn(authZone), subDomain, info.Value)
+	err = d.client.AddTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("webnamesru: failed to create TXT records [domain: %s, sub domain: %s]: %w",
-			dns01.UnFqdn(authZone), subDomain, err)
+			dnsrecord.UnFqdn(authZone), subDomain, err)
 	}
 
 	return nil
@@ -118,20 +119,20 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("webnamesru: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("webnamesru: %w", err)
 	}
 
-	err = d.client.RemoveTXTRecord(context.Background(), dns01.UnFqdn(authZone), subDomain, info.Value)
+	err = d.client.RemoveTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("webnamesru: failed to remove TXT records [domain: %s, sub domain: %s]: %w",
-			dns01.UnFqdn(authZone), subDomain, err)
+			dnsrecord.UnFqdn(authZone), subDomain, err)
 	}
 
 	return nil

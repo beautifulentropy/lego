@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/corenetworks/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -117,12 +118,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("create authentication token: %w", err)
 	}
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("corenetworks: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("corenetworks: %w", err)
 	}
@@ -134,12 +135,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		Data: info.Value,
 	}
 
-	err = d.client.AddRecord(ctx, dns01.UnFqdn(zone), record)
+	err = d.client.AddRecord(ctx, dnsrecord.UnFqdn(zone), record)
 	if err != nil {
 		return fmt.Errorf("corenetworks: add record: %w", err)
 	}
 
-	err = d.client.CommitRecords(ctx, dns01.UnFqdn(zone))
+	err = d.client.CommitRecords(ctx, dnsrecord.UnFqdn(zone))
 	if err != nil {
 		return fmt.Errorf("corenetworks: commit records: %w", err)
 	}
@@ -156,12 +157,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("create authentication token: %w", err)
 	}
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("corenetworks: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("corenetworks: %w", err)
 	}
@@ -173,12 +174,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		Data: info.Value,
 	}
 
-	err = d.client.DeleteRecords(ctx, dns01.UnFqdn(zone), record)
+	err = d.client.DeleteRecords(ctx, dnsrecord.UnFqdn(zone), record)
 	if err != nil {
 		return fmt.Errorf("corenetworks: delete records: %w", err)
 	}
 
-	err = d.client.CommitRecords(ctx, dns01.UnFqdn(zone))
+	err = d.client.CommitRecords(ctx, dnsrecord.UnFqdn(zone))
 	if err != nil {
 		return fmt.Errorf("corenetworks: commit records: %w", err)
 	}

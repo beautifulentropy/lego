@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/hetzner/internal/legacy/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -107,12 +108,12 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hetzner (legacy): could not find zone for domain %q: %w", domain, err)
 	}
 
-	zone := dns01.UnFqdn(authZone)
+	zone := dnsrecord.UnFqdn(authZone)
 
 	ctx := context.Background()
 
@@ -121,7 +122,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("hetzner (legacy): %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("hetzner (legacy): %w", err)
 	}
@@ -145,12 +146,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("hetzner (legacy): could not find zone for domain %q: %w", domain, err)
 	}
 
-	zone := dns01.UnFqdn(authZone)
+	zone := dnsrecord.UnFqdn(authZone)
 
 	ctx := context.Background()
 
@@ -159,7 +160,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("hetzner (legacy): %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("hetzner (legacy): %w", err)
 	}

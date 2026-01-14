@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/nrdcg/mailinabox"
@@ -114,7 +115,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	record := mailinabox.Record{
-		Name:  dns01.UnFqdn(info.EffectiveFQDN),
+		Name:  dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:  "TXT",
 		Value: info.Value,
 	}
@@ -133,7 +134,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	record := mailinabox.Record{
-		Name:  dns01.UnFqdn(info.EffectiveFQDN),
+		Name:  dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Type:  "TXT",
 		Value: info.Value,
 	}

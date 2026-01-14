@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -132,7 +133,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("pdns: could not find zone for domain %q: %w", domain, err)
 	}
@@ -145,7 +146,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	name := info.EffectiveFQDN
 	if d.client.APIVersion() == 0 {
 		// pre-v1 API wants non-fqdn
-		name = dns01.UnFqdn(info.EffectiveFQDN)
+		name = dnsrecord.UnFqdn(info.EffectiveFQDN)
 	}
 
 	// Look for existing records.
@@ -196,7 +197,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("pdns: could not find zone for domain %q: %w", domain, err)
 	}
@@ -248,7 +249,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func findTxtRecord(zone *internal.HostedZone, fqdn string) *internal.RRSet {
 	for _, set := range zone.RRSets {
-		if set.Type == "TXT" && (set.Name == dns01.UnFqdn(fqdn) || set.Name == fqdn) {
+		if set.Type == "TXT" && (set.Name == dnsrecord.UnFqdn(fqdn) || set.Name == fqdn) {
 			return &set
 		}
 	}

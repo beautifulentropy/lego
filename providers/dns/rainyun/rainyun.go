@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/rainyun/internal"
@@ -100,17 +101,17 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("rainyun: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("rainyun: %w", err)
 	}
 
-	domainID, err := d.findDomainID(ctx, dns01.UnFqdn(authZone))
+	domainID, err := d.findDomainID(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("rainyun: find domain ID: %w", err)
 	}
@@ -138,12 +139,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	ctx := context.Background()
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("rainyun: could not find zone for domain %q: %w", domain, err)
 	}
 
-	domainID, err := d.findDomainID(ctx, dns01.UnFqdn(authZone))
+	domainID, err := d.findDomainID(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("rainyun: find domain ID: %w", err)
 	}
@@ -188,7 +189,7 @@ func (d *DNSProvider) findRecordID(ctx context.Context, domainID int, info dns01
 		return 0, fmt.Errorf("list records: %w", err)
 	}
 
-	zone := dns01.UnFqdn(info.EffectiveFQDN)
+	zone := dnsrecord.UnFqdn(info.EffectiveFQDN)
 
 	for _, record := range records {
 		if strings.HasPrefix(zone, record.Host) && record.Value == info.Value {

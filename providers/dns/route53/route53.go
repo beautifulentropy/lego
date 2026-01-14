@@ -20,6 +20,7 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
@@ -305,14 +306,14 @@ func (d *DNSProvider) getHostedZoneID(ctx context.Context, fqdn string) (string,
 		return d.config.HostedZoneID, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for FQDN %q: %w", fqdn, err)
 	}
 
 	// .DNSName should not have a trailing dot
 	reqParams := &route53.ListHostedZonesByNameInput{
-		DNSName: aws.String(dns01.UnFqdn(authZone)),
+		DNSName: aws.String(dnsrecord.UnFqdn(authZone)),
 	}
 
 	resp, err := d.client.ListHostedZonesByName(ctx, reqParams)

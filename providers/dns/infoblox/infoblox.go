@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/useragent"
 	infoblox "github.com/infobloxopen/infoblox-go-client/v2"
@@ -169,7 +170,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	objectManager := infoblox.NewObjectManager(connector, useragent.Get(), "")
 
-	record, err := objectManager.CreateTXTRecord(d.config.DNSView, dns01.UnFqdn(info.EffectiveFQDN), info.Value, uint32(d.config.TTL), true, "lego", nil)
+	record, err := objectManager.CreateTXTRecord(d.config.DNSView, dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value, uint32(d.config.TTL), true, "lego", nil)
 	if err != nil {
 		return fmt.Errorf("infoblox: could not create TXT record for %s: %w", domain, err)
 	}

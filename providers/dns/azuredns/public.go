@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/dns/armdns"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/providers/dns/internal/ptr"
 )
 
@@ -61,7 +62,7 @@ func (d *DNSProviderPublic) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("azuredns: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
 	if err != nil {
 		return fmt.Errorf("azuredns: %w", err)
 	}
@@ -113,7 +114,7 @@ func (d *DNSProviderPublic) CleanUp(domain, _, keyAuth string) error {
 		return fmt.Errorf("azuredns: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone.Name)
 	if err != nil {
 		return fmt.Errorf("azuredns: %w", err)
 	}
@@ -133,7 +134,7 @@ func (d *DNSProviderPublic) getHostedZone(fqdn string) (ServiceDiscoveryZone, er
 		return ServiceDiscoveryZone{}, err
 	}
 
-	azureZone, exists := d.serviceDiscoveryZones[dns01.UnFqdn(authZone)]
+	azureZone, exists := d.serviceDiscoveryZones[dnsrecord.UnFqdn(authZone)]
 	if !exists {
 		return ServiceDiscoveryZone{}, fmt.Errorf("could not find zone (from discovery): %s", authZone)
 	}

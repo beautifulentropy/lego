@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/metaregistrar/internal"
@@ -95,21 +96,21 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("metaregistrar: could not find zone for domain %q: %w", domain, err)
 	}
 
 	updateRequest := internal.DNSZoneUpdateRequest{
 		Add: []internal.Record{{
-			Name:    dns01.UnFqdn(info.EffectiveFQDN),
+			Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 			Type:    "TXT",
 			TTL:     d.config.TTL,
 			Content: info.Value,
 		}},
 	}
 
-	_, err = d.client.UpdateDNSZone(context.Background(), dns01.UnFqdn(authZone), updateRequest)
+	_, err = d.client.UpdateDNSZone(context.Background(), dnsrecord.UnFqdn(authZone), updateRequest)
 	if err != nil {
 		return fmt.Errorf("metaregistrar: %w", err)
 	}
@@ -121,21 +122,21 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("metaregistrar: could not find zone for domain %q: %w", domain, err)
 	}
 
 	updateRequest := internal.DNSZoneUpdateRequest{
 		Remove: []internal.Record{{
-			Name:    dns01.UnFqdn(info.EffectiveFQDN),
+			Name:    dnsrecord.UnFqdn(info.EffectiveFQDN),
 			Type:    "TXT",
 			TTL:     d.config.TTL,
 			Content: strconv.Quote(info.Value),
 		}},
 	}
 
-	_, err = d.client.UpdateDNSZone(context.Background(), dns01.UnFqdn(authZone), updateRequest)
+	_, err = d.client.UpdateDNSZone(context.Background(), dnsrecord.UnFqdn(authZone), updateRequest)
 	if err != nil {
 		return fmt.Errorf("metaregistrar: %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/joker/internal/svc"
@@ -63,34 +64,34 @@ func (d *svcProvider) Timeout() (timeout, interval time.Duration) {
 func (d *svcProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("joker: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("joker: %w", err)
 	}
 
-	return d.client.SendRequest(context.Background(), dns01.UnFqdn(zone), subDomain, info.Value)
+	return d.client.SendRequest(context.Background(), dnsrecord.UnFqdn(zone), subDomain, info.Value)
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *svcProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("joker: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("joker: %w", err)
 	}
 
-	return d.client.SendRequest(context.Background(), dns01.UnFqdn(zone), subDomain, "")
+	return d.client.SendRequest(context.Background(), dnsrecord.UnFqdn(zone), subDomain, "")
 }
 
 // Sequential All DNS challenges for this provider will be resolved sequentially.

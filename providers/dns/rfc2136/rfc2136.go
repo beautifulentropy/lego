@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/rfc2136/internal"
 	"github.com/miekg/dns"
@@ -189,7 +190,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 	// Find the zone for the given fqdn
-	zone, err := dns01.FindZoneByFqdnCustom(fqdn, []string{d.config.Nameserver})
+	zone, err := dnsrecord.FindZoneByFqdnCustom(fqdn, []string{d.config.Nameserver})
 	if err != nil {
 		return err
 	}

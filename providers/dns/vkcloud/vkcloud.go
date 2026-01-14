@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/vkcloud/internal"
 	"github.com/gophercloud/gophercloud"
@@ -122,12 +123,12 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("vkcloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zones, err := d.client.ListZones()
 	if err != nil {
@@ -146,7 +147,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("vkcloud: cant find dns zone %s in VK Cloud", authZone)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("vkcloud: %w", err)
 	}
@@ -163,12 +164,12 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("vkcloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	authZone = dns01.UnFqdn(authZone)
+	authZone = dnsrecord.UnFqdn(authZone)
 
 	zones, err := d.client.ListZones()
 	if err != nil {
@@ -187,7 +188,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return nil
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("vkcloud: %w", err)
 	}
@@ -232,7 +233,7 @@ func (d *DNSProvider) removeTXTRecord(zoneUUID, name, value string) error {
 		return err
 	}
 
-	name = dns01.UnFqdn(name)
+	name = dnsrecord.UnFqdn(name)
 	for _, record := range records {
 		if record.Name == name && record.Content == value {
 			return d.client.DeleteTXTRecord(zoneUUID, record.UUID)

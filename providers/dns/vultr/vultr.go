@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/vultr/govultr/v3"
@@ -102,7 +103,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("vultr: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zoneDomain)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, zoneDomain)
 	if err != nil {
 		return fmt.Errorf("vultr: %w", err)
 	}
@@ -198,7 +199,7 @@ func (d *DNSProvider) findTxtRecords(ctx context.Context, domain, fqdn string) (
 		return "", nil, err
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneDomain)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zoneDomain)
 	if err != nil {
 		return "", nil, err
 	}

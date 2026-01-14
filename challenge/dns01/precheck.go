@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/miekg/dns"
 )
 
 // defaultNameserverPort used by authoritative NS.
-// This is for tests only.
 var defaultNameserverPort = "53"
 
 // PreCheckFunc checks DNS propagation before notifying ACME that the DNS challenge is ready.
@@ -89,17 +89,17 @@ func (p preCheck) call(domain, fqdn, value string) (bool, error) {
 // checkDNSPropagation checks if the expected TXT record has been propagated to all authoritative nameservers.
 func (p preCheck) checkDNSPropagation(fqdn, value string) (bool, error) {
 	// Initial attempt to resolve at the recursive NS (require to get CNAME)
-	r, err := dnsQuery(fqdn, dns.TypeTXT, recursiveNameservers, true)
+	r, err := dnsrecord.DNSQuery(fqdn, dns.TypeTXT, dnsrecord.RecursiveNameservers, true)
 	if err != nil {
 		return false, fmt.Errorf("initial recursive nameserver: %w", err)
 	}
 
 	if r.Rcode == dns.RcodeSuccess {
-		fqdn = updateDomainWithCName(r, fqdn)
+		fqdn = dnsrecord.UpdateDomainWithCName(r, fqdn)
 	}
 
 	if p.requireRecursiveNssPropagation {
-		_, err = checkNameserversPropagation(fqdn, value, recursiveNameservers, false)
+		_, err = checkNameserversPropagation(fqdn, value, dnsrecord.RecursiveNameservers, false)
 		if err != nil {
 			return false, fmt.Errorf("recursive nameservers: %w", err)
 		}
@@ -109,7 +109,7 @@ func (p preCheck) checkDNSPropagation(fqdn, value string) (bool, error) {
 		return true, nil
 	}
 
-	authoritativeNss, err := lookupNameservers(fqdn)
+	authoritativeNss, err := dnsrecord.LookupNameservers(fqdn)
 	if err != nil {
 		return false, err
 	}
@@ -129,7 +129,7 @@ func checkNameserversPropagation(fqdn, value string, nameservers []string, addPo
 			ns = net.JoinHostPort(ns, defaultNameserverPort)
 		}
 
-		r, err := dnsQuery(fqdn, dns.TypeTXT, []string{ns}, false)
+		r, err := dnsrecord.DNSQuery(fqdn, dns.TypeTXT, []string{ns}, false)
 		if err != nil {
 			return false, err
 		}

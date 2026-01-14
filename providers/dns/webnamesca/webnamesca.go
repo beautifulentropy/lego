@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/webnamesca/internal"
@@ -97,12 +98,12 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("webnamesca: could not find zone for domain %q: %w", domain, err)
 	}
 
-	_, err = d.client.AddTXTRecord(context.Background(), dns01.UnFqdn(authZone), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	_, err = d.client.AddTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("webnamesca: add TXT record: %w", err)
 	}
@@ -114,12 +115,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("webnamesca: could not find zone for domain %q: %w", domain, err)
 	}
 
-	_, err = d.client.DeleteTXTRecord(context.Background(), dns01.UnFqdn(authZone), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	_, err = d.client.DeleteTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("webnamesca: delete TXT record: %w", err)
 	}

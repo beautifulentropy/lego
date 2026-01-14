@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/constellix/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -112,19 +113,19 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("constellix: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
 
-	dom, err := d.client.Domains.GetByName(ctx, dns01.UnFqdn(authZone))
+	dom, err := d.client.Domains.GetByName(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("constellix: failed to get domain (%s): %w", authZone, err)
 	}
 
-	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	recordName, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("constellix: %w", err)
 	}
@@ -155,19 +156,19 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("constellix: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
 
-	dom, err := d.client.Domains.GetByName(ctx, dns01.UnFqdn(authZone))
+	dom, err := d.client.Domains.GetByName(ctx, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("constellix: failed to get domain (%s): %w", authZone, err)
 	}
 
-	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	recordName, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("constellix: %w", err)
 	}

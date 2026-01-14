@@ -13,6 +13,7 @@ import (
 	"github.com/cenkalti/backoff/v5"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
@@ -118,12 +119,12 @@ func (d *DNSProvider) Sequential() time.Duration {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	authZone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("variomedia: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("variomedia: %w", err)
 	}
@@ -133,7 +134,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	record := internal.DNSRecord{
 		RecordType: "TXT",
 		Name:       subDomain,
-		Domain:     dns01.UnFqdn(authZone),
+		Domain:     dnsrecord.UnFqdn(authZone),
 		Data:       info.Value,
 		TTL:        d.config.TTL,
 	}

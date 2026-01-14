@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/ispconfigddns/internal"
@@ -114,12 +115,12 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ispconfig (DDNS module): could not find zone for domain %q: %w", domain, err)
 	}
 
-	err = d.client.AddTXTRecord(context.Background(), dns01.UnFqdn(zone), info.EffectiveFQDN, info.Value)
+	err = d.client.AddTXTRecord(context.Background(), dnsrecord.UnFqdn(zone), info.EffectiveFQDN, info.Value)
 	if err != nil {
 		return fmt.Errorf("ispconfig (DDNS module): add record: %w", err)
 	}
@@ -131,12 +132,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	zone, err := dnsrecord.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ispconfig (DDNS module): could not find zone for domain %q: %w", domain, err)
 	}
 
-	err = d.client.DeleteTXTRecord(context.Background(), dns01.UnFqdn(zone), info.EffectiveFQDN, info.Value)
+	err = d.client.DeleteTXTRecord(context.Background(), dnsrecord.UnFqdn(zone), info.EffectiveFQDN, info.Value)
 	if err != nil {
 		return fmt.Errorf("ispconfig (DDNS module): delete record: %w", err)
 	}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/useragent"
@@ -141,7 +142,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	createOpts := linodego.DomainRecordCreateOptions{
-		Name:   dns01.UnFqdn(info.EffectiveFQDN),
+		Name:   dnsrecord.UnFqdn(info.EffectiveFQDN),
 		Target: info.Value,
 		TTLSec: d.config.TTL,
 		Type:   linodego.RecordTypeTXT,
@@ -173,7 +174,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	// Remove the specified resource, if it exists.
 	for _, resource := range resources {
-		if (resource.Name == dns01.UnFqdn(info.EffectiveFQDN) || resource.Name == zone.resourceName) &&
+		if (resource.Name == dnsrecord.UnFqdn(info.EffectiveFQDN) || resource.Name == zone.resourceName) &&
 			resource.Target == info.Value {
 			if err := d.client.DeleteDomainRecord(ctx, zone.domainID, resource.ID); err != nil {
 				return err
@@ -186,13 +187,13 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) getHostedZoneInfo(ctx context.Context, fqdn string) (*hostedZoneInfo, error) {
 	// Lookup the zone that handles the specified FQDN.
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dnsrecord.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}
 
 	// Query the authority zone.
-	filter, err := json.Marshal(map[string]string{"domain": dns01.UnFqdn(authZone)})
+	filter, err := json.Marshal(map[string]string{"domain": dnsrecord.UnFqdn(authZone)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JSON filter: %w", err)
 	}
@@ -208,7 +209,7 @@ func (d *DNSProvider) getHostedZoneInfo(ctx context.Context, fqdn string) (*host
 		return nil, errors.New("domain not found")
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, authZone)
 	if err != nil {
 		return nil, err
 	}

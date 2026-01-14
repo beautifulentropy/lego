@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/loopia/internal"
@@ -123,7 +124,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	return &DNSProvider{
 		config:         config,
 		client:         client,
-		findZoneByFqdn: dns01.FindZoneByFqdn,
+		findZoneByFqdn: dnsrecord.FindZoneByFqdn,
 		inProgressInfo: make(map[string]int),
 	}, nil
 }
@@ -210,10 +211,10 @@ func (d *DNSProvider) splitDomain(fqdn string) (string, string, error) {
 		return "", "", fmt.Errorf("could not find zone: %w", err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, authZone)
 	if err != nil {
 		return "", "", err
 	}
 
-	return subDomain, dns01.UnFqdn(authZone), nil
+	return subDomain, dnsrecord.UnFqdn(authZone), nil
 }

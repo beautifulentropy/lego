@@ -11,6 +11,7 @@ import (
 	"github.com/dnsimple/dnsimple-go/v4/dnsimple"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/internal/useragent"
@@ -163,7 +164,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) getHostedZone(ctx context.Context, domain string) (string, error) {
-	authZone, err := dns01.FindZoneByFqdn(domain)
+	authZone, err := dnsrecord.FindZoneByFqdn(domain)
 	if err != nil {
 		return "", fmt.Errorf("could not find zone for FQDN %q: %w", domain, err)
 	}
@@ -173,7 +174,7 @@ func (d *DNSProvider) getHostedZone(ctx context.Context, domain string) (string,
 		return "", err
 	}
 
-	hostedZone, err := d.client.Zones.GetZone(ctx, accountID, dns01.UnFqdn(authZone))
+	hostedZone, err := d.client.Zones.GetZone(ctx, accountID, dnsrecord.UnFqdn(authZone))
 	if err != nil {
 		return "", fmt.Errorf("get zone: %w", err)
 	}
@@ -196,7 +197,7 @@ func (d *DNSProvider) findTxtRecords(ctx context.Context, fqdn string) ([]dnsimp
 		return nil, err
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneName)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zoneName)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +211,7 @@ func (d *DNSProvider) findTxtRecords(ctx context.Context, fqdn string) ([]dnsimp
 }
 
 func newTxtRecord(zoneName, fqdn, value string, ttl int) (dnsimple.ZoneRecordAttributes, error) {
-	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneName)
+	subDomain, err := dnsrecord.ExtractSubDomain(fqdn, zoneName)
 	if err != nil {
 		return dnsimple.ZoneRecordAttributes{}, err
 	}

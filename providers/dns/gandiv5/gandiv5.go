@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/gandiv5/internal"
@@ -128,7 +129,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		config:          config,
 		client:          client,
 		inProgressFQDNs: make(map[string]inProgressInfo),
-		findZoneByFqdn:  dns01.FindZoneByFqdn,
+		findZoneByFqdn:  dnsrecord.FindZoneByFqdn,
 	}, nil
 }
 
@@ -143,7 +144,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	// determine name of TXT record
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	subDomain, err := dnsrecord.ExtractSubDomain(info.EffectiveFQDN, authZone)
 	if err != nil {
 		return fmt.Errorf("gandiv5: %w", err)
 	}
@@ -154,7 +155,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	defer d.inProgressMu.Unlock()
 
 	// add TXT record into authZone
-	err = d.client.AddTXTRecord(context.Background(), dns01.UnFqdn(authZone), subDomain, info.Value, d.config.TTL)
+	err = d.client.AddTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), subDomain, info.Value, d.config.TTL)
 	if err != nil {
 		return err
 	}
@@ -186,7 +187,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	delete(d.inProgressFQDNs, info.EffectiveFQDN)
 
 	// delete TXT record from authZone
-	err := d.client.DeleteTXTRecord(context.Background(), dns01.UnFqdn(authZone), fieldName)
+	err := d.client.DeleteTXTRecord(context.Background(), dnsrecord.UnFqdn(authZone), fieldName)
 	if err != nil {
 		return fmt.Errorf("gandiv5: %w", err)
 	}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/duckdns/internal"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
@@ -95,13 +96,13 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
-	return d.client.AddTXTRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	return d.client.AddTXTRecord(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 }
 
 // CleanUp clears DuckDNS TXT record.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
-	return d.client.RemoveTXTRecord(context.Background(), dns01.UnFqdn(info.EffectiveFQDN))
+	return d.client.RemoveTXTRecord(context.Background(), dnsrecord.UnFqdn(info.EffectiveFQDN))
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.

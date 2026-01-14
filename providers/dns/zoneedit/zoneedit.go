@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnsrecord"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/providers/dns/internal/clientdebug"
 	"github.com/go-acme/lego/v4/providers/dns/zoneedit/internal"
@@ -93,7 +94,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.CreateTXTRecord(dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	err := d.client.CreateTXTRecord(dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("zoneedit: create TXT record: %w", err)
 	}
@@ -108,7 +109,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.DeleteTXTRecord(dns01.UnFqdn(info.EffectiveFQDN), info.Value)
+	err := d.client.DeleteTXTRecord(dnsrecord.UnFqdn(info.EffectiveFQDN), info.Value)
 	if err != nil {
 		return fmt.Errorf("zoneedit: delete TXT record: %w", err)
 	}
