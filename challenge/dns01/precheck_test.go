@@ -3,7 +3,7 @@ package dns01
 import (
 	"testing"
 
-	"github.com/go-acme/lego/v4/challenge/dnsrecord"
+	dnsrecordtestutil "github.com/go-acme/lego/v4/challenge/dnsrecord/testutil"
 	"github.com/go-acme/lego/v4/platform/tester/dnsmock"
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/assert"
@@ -64,7 +64,7 @@ func Test_preCheck_checkDNSPropagation(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.desc, func(t *testing.T) {
-			dnsrecord.ClearFqdnCache()
+			dnsrecordtestutil.ClearFqdnCache()
 
 			check := newPreCheck()
 
@@ -127,7 +127,7 @@ func Test_checkNameserversPropagation_authoritativeNss(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.desc, func(t *testing.T) {
-			dnsrecord.ClearFqdnCache()
+			dnsrecordtestutil.ClearFqdnCache()
 
 			addr := test.fakeDNSServer.Build(t)
 

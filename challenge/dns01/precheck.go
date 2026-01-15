@@ -89,7 +89,7 @@ func (p preCheck) call(domain, fqdn, value string) (bool, error) {
 // checkDNSPropagation checks if the expected TXT record has been propagated to all authoritative nameservers.
 func (p preCheck) checkDNSPropagation(fqdn, value string) (bool, error) {
 	// Initial attempt to resolve at the recursive NS (require to get CNAME)
-	r, err := dnsrecord.DNSQuery(fqdn, dns.TypeTXT, dnsrecord.RecursiveNameservers, true)
+	r, err := dnsrecord.DNSQuery(fqdn, dns.TypeTXT, dnsrecord.GetRecursiveNameservers(), true)
 	if err != nil {
 		return false, fmt.Errorf("initial recursive nameserver: %w", err)
 	}
@@ -99,7 +99,7 @@ func (p preCheck) checkDNSPropagation(fqdn, value string) (bool, error) {
 	}
 
 	if p.requireRecursiveNssPropagation {
-		_, err = checkNameserversPropagation(fqdn, value, dnsrecord.RecursiveNameservers, false)
+		_, err = checkNameserversPropagation(fqdn, value, dnsrecord.GetRecursiveNameservers(), false)
 		if err != nil {
 			return false, fmt.Errorf("recursive nameservers: %w", err)
 		}

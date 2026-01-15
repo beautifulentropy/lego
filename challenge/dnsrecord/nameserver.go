@@ -23,8 +23,76 @@ var defaultNameservers = []string{
 	"google-public-dns-b.google.com:53",
 }
 
-// RecursiveNameservers are used to pre-check DNS propagation.
-var RecursiveNameservers = getNameservers(defaultResolvConf, defaultNameservers)
+var defaultResolverMu sync.RWMutex
+
+var defaultResolver = &Resolver{
+	Nameservers: getNameservers(defaultResolvConf, defaultNameservers),
+	Timeout:     defaultDNSTimeout,
+}
+
+// Resolver performs DNS lookups with a configurable nameserver list and timeout.
+type Resolver struct {
+	Nameservers []string
+	Timeout     time.Duration
+}
+
+// NewResolver creates a resolver with normalized nameservers and default timeout.
+func NewResolver(nameservers []string) *Resolver {
+	return &Resolver{
+		Nameservers: ParseNameservers(nameservers),
+		Timeout:     DefaultDNSTimeout(),
+	}
+}
+
+// DefaultResolver returns a copy of the default resolver configuration.
+func DefaultResolver() *Resolver {
+	defaultResolverMu.RLock()
+	defer defaultResolverMu.RUnlock()
+
+	return &Resolver{
+		Nameservers: slices.Clone(defaultResolver.Nameservers),
+		Timeout:     defaultResolver.Timeout,
+	}
+}
+
+// GetRecursiveNameservers returns the nameservers used to pre-check DNS propagation.
+func GetRecursiveNameservers() []string {
+	defaultResolverMu.RLock()
+	defer defaultResolverMu.RUnlock()
+
+	return slices.Clone(defaultResolver.Nameservers)
+}
+
+// SetRecursiveNameservers overrides the default recursive nameservers used for DNS lookups.
+func SetRecursiveNameservers(nameservers []string) {
+	defaultResolverMu.Lock()
+	defaultResolver.Nameservers = ParseNameservers(nameservers)
+	defaultResolverMu.Unlock()
+}
+
+// DefaultDNSTimeout returns the OS-specific default DNS timeout.
+func DefaultDNSTimeout() time.Duration {
+	return defaultDNSTimeout
+}
+
+// GetDNSTimeout returns the timeout used for DNS queries.
+func GetDNSTimeout() time.Duration {
+	defaultResolverMu.RLock()
+	defer defaultResolverMu.RUnlock()
+
+	return defaultResolver.Timeout
+}
+
+// SetDNSTimeout overrides the timeout used for DNS queries.
+func SetDNSTimeout(timeout time.Duration) {
+	if timeout <= 0 {
+		timeout = DefaultDNSTimeout()
+	}
+
+	defaultResolverMu.Lock()
+	defaultResolver.Timeout = timeout
+	defaultResolverMu.Unlock()
+}
 
 // soaCacheEntry holds a cached SOA record (only selected fields).
 type soaCacheEntry struct {
@@ -47,6 +115,8 @@ func (cache *soaCacheEntry) isExpired() bool {
 }
 
 // ClearFqdnCache clears the cache of fqdn to zone mappings. Primarily used in testing.
+//
+// Deprecated: use testutil.ClearFqdnCache in external tests.
 func ClearFqdnCache() {
 	// TODO(ldez): use `fqdnSoaCache.Clear()` when updating to go1.23
 	fqdnSoaCache.Range(func(k, v any) bool {
@@ -89,7 +159,7 @@ func LookupNameservers(fqdn string) ([]string, error) {
 		return nil, fmt.Errorf("could not find zone: %w", err)
 	}
 
-	r, err := DNSQuery(zone, dns.TypeNS, RecursiveNameservers, true)
+	r, err := DNSQuery(zone, dns.TypeNS, GetRecursiveNameservers(), true)
 	if err != nil {
 		return nil, fmt.Errorf("NS call failed: %w", err)
 	}
@@ -110,12 +180,12 @@ func LookupNameservers(fqdn string) ([]string, error) {
 // FindPrimaryNsByFqdn determines the primary nameserver of the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
 func FindPrimaryNsByFqdn(fqdn string) (string, error) {
-	return FindPrimaryNsByFqdnCustom(fqdn, RecursiveNameservers)
+	return FindPrimaryNsByFqdnWithNameservers(fqdn, GetRecursiveNameservers())
 }
 
-// FindPrimaryNsByFqdnCustom determines the primary nameserver of the zone apex for the given fqdn
+// FindPrimaryNsByFqdnWithNameservers determines the primary nameserver of the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
-func FindPrimaryNsByFqdnCustom(fqdn string, nameservers []string) (string, error) {
+func FindPrimaryNsByFqdnWithNameservers(fqdn string, nameservers []string) (string, error) {
 	soa, err := lookupSoaByFqdn(fqdn, nameservers)
 	if err != nil {
 		return "", fmt.Errorf("[fqdn=%s] %w", fqdn, err)
@@ -124,21 +194,37 @@ func FindPrimaryNsByFqdnCustom(fqdn string, nameservers []string) (string, error
 	return soa.primaryNs, nil
 }
 
+// FindPrimaryNsByFqdnCustom determines the primary nameserver of the zone apex for the given fqdn
+// by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
+//
+// Deprecated: use FindPrimaryNsByFqdnWithNameservers instead.
+func FindPrimaryNsByFqdnCustom(fqdn string, nameservers []string) (string, error) {
+	return FindPrimaryNsByFqdnWithNameservers(fqdn, nameservers)
+}
+
 // FindZoneByFqdn determines the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
 func FindZoneByFqdn(fqdn string) (string, error) {
-	return FindZoneByFqdnCustom(fqdn, RecursiveNameservers)
+	return FindZoneByFqdnWithNameservers(fqdn, GetRecursiveNameservers())
 }
 
-// FindZoneByFqdnCustom determines the zone apex for the given fqdn
+// FindZoneByFqdnWithNameservers determines the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
-func FindZoneByFqdnCustom(fqdn string, nameservers []string) (string, error) {
+func FindZoneByFqdnWithNameservers(fqdn string, nameservers []string) (string, error) {
 	soa, err := lookupSoaByFqdn(fqdn, nameservers)
 	if err != nil {
 		return "", fmt.Errorf("[fqdn=%s] %w", fqdn, err)
 	}
 
 	return soa.zone, nil
+}
+
+// FindZoneByFqdnCustom determines the zone apex for the given fqdn
+// by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
+//
+// Deprecated: use FindZoneByFqdnWithNameservers instead.
+func FindZoneByFqdnCustom(fqdn string, nameservers []string) (string, error) {
+	return FindZoneByFqdnWithNameservers(fqdn, nameservers)
 }
 
 func lookupSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) {
@@ -216,6 +302,10 @@ func dnsMsgContainsCNAME(msg *dns.Msg) bool {
 
 // DNSQuery performs a DNS query of the given type against the provided nameservers.
 func DNSQuery(fqdn string, rtype uint16, nameservers []string, recursive bool) (*dns.Msg, error) {
+	return dnsQueryWithTimeout(fqdn, rtype, nameservers, recursive, GetDNSTimeout())
+}
+
+func dnsQueryWithTimeout(fqdn string, rtype uint16, nameservers []string, recursive bool, timeout time.Duration) (*dns.Msg, error) {
 	m := createDNSMsg(fqdn, rtype, recursive)
 
 	if len(nameservers) == 0 {
@@ -229,7 +319,7 @@ func DNSQuery(fqdn string, rtype uint16, nameservers []string, recursive bool) (
 	)
 
 	for _, ns := range nameservers {
-		r, err = sendDNSQuery(m, ns)
+		r, err = sendDNSQuery(m, ns, timeout)
 		if err == nil && len(r.Answer) > 0 {
 			break
 		}
@@ -256,9 +346,9 @@ func createDNSMsg(fqdn string, rtype uint16, recursive bool) *dns.Msg {
 	return m
 }
 
-func sendDNSQuery(m *dns.Msg, ns string) (*dns.Msg, error) {
+func sendDNSQuery(m *dns.Msg, ns string, timeout time.Duration) (*dns.Msg, error) {
 	if ok, _ := strconv.ParseBool(os.Getenv("LEGO_EXPERIMENTAL_DNS_TCP_ONLY")); ok {
-		tcp := &dns.Client{Net: "tcp", Timeout: dnsTimeout}
+		tcp := &dns.Client{Net: "tcp", Timeout: timeout}
 
 		r, _, err := tcp.Exchange(m, ns)
 		if err != nil {
@@ -268,11 +358,11 @@ func sendDNSQuery(m *dns.Msg, ns string) (*dns.Msg, error) {
 		return r, nil
 	}
 
-	udp := &dns.Client{Net: "udp", Timeout: dnsTimeout}
+	udp := &dns.Client{Net: "udp", Timeout: timeout}
 	r, _, err := udp.Exchange(m, ns)
 
 	if r != nil && r.Truncated {
-		tcp := &dns.Client{Net: "tcp", Timeout: dnsTimeout}
+		tcp := &dns.Client{Net: "tcp", Timeout: timeout}
 		// If the TCP request succeeds, the "err" will reset to nil
 		r, _, err = tcp.Exchange(m, ns)
 	}
@@ -338,14 +428,4 @@ func formatQuestions(questions []dns.Question) string {
 	}
 
 	return strings.Join(parts, ";")
-}
-
-// SetRecursiveNameservers overrides the default recursive nameservers used for DNS lookups.
-func SetRecursiveNameservers(nameservers []string) {
-	RecursiveNameservers = ParseNameservers(nameservers)
-}
-
-// SetDNSTimeout overrides the default timeout for DNS queries.
-func SetDNSTimeout(timeout time.Duration) {
-	dnsTimeout = timeout
 }

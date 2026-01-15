@@ -22,11 +22,11 @@ func useAsNameserver(t *testing.T, addr net.Addr) {
 		ClearFqdnCache()
 	})
 
-	originalRecursiveNameservers := RecursiveNameservers
+	originalRecursiveNameservers := GetRecursiveNameservers()
 
 	t.Cleanup(func() {
-		RecursiveNameservers = originalRecursiveNameservers
+		SetRecursiveNameservers(originalRecursiveNameservers)
 	})
 
-	RecursiveNameservers = ParseNameservers([]string{addr.String()})
+	SetRecursiveNameservers([]string{addr.String()})
 }

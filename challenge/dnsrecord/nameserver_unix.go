@@ -4,5 +4,5 @@ package dnsrecord
 
 import "time"
 
-// dnsTimeout is used to override the default DNS timeout of 10 seconds.
-var dnsTimeout = 10 * time.Second
+// defaultDNSTimeout is used as the default DNS timeout on Unix-like systems.
+const defaultDNSTimeout = 10 * time.Second

@@ -128,7 +128,7 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 		timeout, interval = DefaultPropagationTimeout, DefaultPollingInterval
 	}
 
-	log.Infof("[%s] acme: Checking DNS record propagation. [nameservers=%s]", domain, strings.Join(dnsrecord.RecursiveNameservers, ","))
+	log.Infof("[%s] acme: Checking DNS record propagation. [nameservers=%s]", domain, strings.Join(dnsrecord.GetRecursiveNameservers(), ","))
 
 	time.Sleep(interval)
 
@@ -224,7 +224,7 @@ func getChallengeFQDN(domain string, followCNAME bool) string {
 	// recursion counter so it doesn't spin out of control
 	for range 50 {
 		// Keep following CNAMEs
-		r, err := dnsrecord.DNSQuery(fqdn, dns.TypeCNAME, dnsrecord.RecursiveNameservers, true)
+		r, err := dnsrecord.DNSQuery(fqdn, dns.TypeCNAME, dnsrecord.GetRecursiveNameservers(), true)
 
 		if err != nil || r.Rcode != dns.RcodeSuccess {
 			// No more CNAME records to follow, exit

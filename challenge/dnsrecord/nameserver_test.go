@@ -234,12 +234,12 @@ func lookupSoaByFqdnTestCases(t *testing.T) []lookupSoaByFqdnTestCase {
 	}
 }
 
-func TestFindZoneByFqdnCustom(t *testing.T) {
+func TestFindZoneByFqdnWithNameservers(t *testing.T) {
 	for _, test := range lookupSoaByFqdnTestCases(t) {
 		t.Run(test.desc, func(t *testing.T) {
 			ClearFqdnCache()
 
-			zone, err := FindZoneByFqdnCustom(test.fqdn, test.nameservers)
+			zone, err := FindZoneByFqdnWithNameservers(test.fqdn, test.nameservers)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.ErrorContains(t, err, test.expectedError)
@@ -251,12 +251,12 @@ func TestFindZoneByFqdnCustom(t *testing.T) {
 	}
 }
 
-func TestFindPrimaryNsByFqdnCustom(t *testing.T) {
+func TestFindPrimaryNsByFqdnWithNameservers(t *testing.T) {
 	for _, test := range lookupSoaByFqdnTestCases(t) {
 		t.Run(test.desc, func(t *testing.T) {
 			ClearFqdnCache()
 
-			ns, err := FindPrimaryNsByFqdnCustom(test.fqdn, test.nameservers)
+			ns, err := FindPrimaryNsByFqdnWithNameservers(test.fqdn, test.nameservers)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.ErrorContains(t, err, test.expectedError)

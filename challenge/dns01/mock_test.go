@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dnsrecord"
+	dnsrecordtestutil "github.com/go-acme/lego/v4/challenge/dnsrecord/testutil"
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/require"
 )
@@ -67,16 +68,16 @@ func mockResolver(t *testing.T, addr net.Addr) {
 func useAsNameserver(t *testing.T, addr net.Addr) {
 	t.Helper()
 
-	dnsrecord.ClearFqdnCache()
+	dnsrecordtestutil.ClearFqdnCache()
 	t.Cleanup(func() {
-		dnsrecord.ClearFqdnCache()
+		dnsrecordtestutil.ClearFqdnCache()
 	})
 
-	originalRecursiveNameservers := dnsrecord.RecursiveNameservers
+	originalRecursiveNameservers := dnsrecord.GetRecursiveNameservers()
 
 	t.Cleanup(func() {
-		dnsrecord.RecursiveNameservers = originalRecursiveNameservers
+		dnsrecord.SetRecursiveNameservers(originalRecursiveNameservers)
 	})
 
-	dnsrecord.RecursiveNameservers = dnsrecord.ParseNameservers([]string{addr.String()})
+	dnsrecord.SetRecursiveNameservers([]string{addr.String()})
 }

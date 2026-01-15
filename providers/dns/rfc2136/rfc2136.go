@@ -190,7 +190,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 	// Find the zone for the given fqdn
-	zone, err := dnsrecord.FindZoneByFqdnCustom(fqdn, []string{d.config.Nameserver})
+	zone, err := dnsrecord.FindZoneByFqdnWithNameservers(fqdn, []string{d.config.Nameserver})
 	if err != nil {
 		return err
 	}
