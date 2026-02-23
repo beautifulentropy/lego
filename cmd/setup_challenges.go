@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
+	"github.com/go-acme/lego/v4/challenge/dnspersist01"
 	"github.com/go-acme/lego/v4/challenge/http01"
 	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v4/lego"
@@ -19,9 +20,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func setupChallenges(ctx *cli.Context, client *lego.Client) {
-	if !ctx.Bool(flgHTTP) && !ctx.Bool(flgTLS) && !ctx.IsSet(flgDNS) {
-		log.Fatalf("No challenge selected. You must specify at least one challenge: `--%s`, `--%s`, `--%s`.", flgHTTP, flgTLS, flgDNS)
+func setupChallenges(ctx *cli.Context, client *lego.Client, account *Account) {
+	if !ctx.Bool(flgHTTP) && !ctx.Bool(flgTLS) && !ctx.IsSet(flgDNS) && !ctx.Bool(flgDNSPersist) {
+		log.Fatalf("No challenge selected. You must specify at least one challenge: `--%s`, `--%s`, `--%s`, `--%s`.", flgHTTP, flgTLS, flgDNS, flgDNSPersist)
 	}
 
 	if ctx.Bool(flgHTTP) {
@@ -40,6 +41,13 @@ func setupChallenges(ctx *cli.Context, client *lego.Client) {
 
 	if ctx.IsSet(flgDNS) {
 		err := setupDNS(ctx, client)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if ctx.Bool(flgDNSPersist) {
+		err := setupDNSPersist(ctx, client, account)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -123,7 +131,7 @@ func setupTLSProvider(ctx *cli.Context) challenge.Provider {
 }
 
 func setupDNS(ctx *cli.Context, client *lego.Client) error {
-	err := checkPropagationExclusiveOptions(ctx)
+	err := checkDNSPropagationExclusiveOptions(ctx)
 	if err != nil {
 		return err
 	}
@@ -162,7 +170,80 @@ func setupDNS(ctx *cli.Context, client *lego.Client) error {
 	return err
 }
 
-func checkPropagationExclusiveOptions(ctx *cli.Context) error {
+func checkDNSPersistPropagationExclusiveOptions(ctx *cli.Context) error {
+	if isSetBool(ctx, flgDNSPersistPropagationDisableANS) && ctx.IsSet(flgDNSPersistPropagationWait) {
+		return fmt.Errorf("'%s' and '%s' are mutually exclusive", flgDNSPersistPropagationDisableANS, flgDNSPersistPropagationWait)
+	}
+
+	if isSetBool(ctx, flgDNSPersistPropagationRNS) && ctx.IsSet(flgDNSPersistPropagationWait) {
+		return fmt.Errorf("'%s' and '%s' are mutually exclusive", flgDNSPersistPropagationRNS, flgDNSPersistPropagationWait)
+	}
+
+	return nil
+}
+
+func setupDNSPersist(ctx *cli.Context, client *lego.Client, account *Account) error {
+	if account == nil || account.Registration == nil {
+		return fmt.Errorf("dns-persist-01 requires a registered account with an account URI")
+	}
+	accountURI := account.Registration.URI
+	if accountURI == "" {
+		return fmt.Errorf("dns-persist-01 requires a registered account with an account URI")
+	}
+
+	err := checkDNSPersistPropagationExclusiveOptions(ctx)
+	if err != nil {
+		return err
+	}
+
+	wait := ctx.Duration(flgDNSPersistPropagationWait)
+	if wait < 0 {
+		return fmt.Errorf("'%s' cannot be negative", flgDNSPersistPropagationWait)
+	}
+
+	opts := []dnspersist01.ChallengeOption{dnspersist01.WithAccountURI(accountURI)}
+
+	if ctx.String(flgDNSPersistIssuerDomainName) != "" {
+		opts = append(opts, dnspersist01.WithIssuerDomainName(ctx.String(flgDNSPersistIssuerDomainName)))
+	}
+	if ctx.IsSet(flgDNSPersistPersistUntil) {
+		persistUntil, err := time.Parse(time.RFC3339, ctx.String(flgDNSPersistPersistUntil))
+		if err != nil {
+			return fmt.Errorf("invalid value for '%s': must be RFC3339: %w", flgDNSPersistPersistUntil, err)
+		}
+
+		opts = append(opts, dnspersist01.WithPersistUntil(persistUntil))
+	}
+
+	if ctx.IsSet(flgDNSPersistResolvers) {
+		resolvers := ctx.StringSlice(flgDNSPersistResolvers)
+		if len(resolvers) > 0 {
+			opts = append(opts, dnspersist01.WithNameservers(resolvers))
+			opts = append(opts, dnspersist01.AddRecursiveNameservers(resolvers))
+		}
+	}
+
+	if ctx.IsSet(flgDNSPersistTimeout) {
+		timeout := time.Duration(ctx.Int(flgDNSPersistTimeout)) * time.Second
+		opts = append(opts, dnspersist01.WithDNSTimeout(timeout))
+	}
+
+	if ctx.Bool(flgDNSPersistPropagationDisableANS) {
+		opts = append(opts, dnspersist01.DisableAuthoritativeNssPropagationRequirement())
+	}
+
+	if ctx.Bool(flgDNSPersistPropagationRNS) {
+		opts = append(opts, dnspersist01.RecursiveNSsPropagationRequirement())
+	}
+
+	if ctx.Duration(flgDNSPersistPropagationWait) > 0 {
+		opts = append(opts, dnspersist01.PropagationWait(wait, true))
+	}
+
+	return client.Challenge.SetDNSPersist01(opts...)
+}
+
+func checkDNSPropagationExclusiveOptions(ctx *cli.Context) error {
 	if ctx.IsSet(flgDNSDisableCP) {
 		log.Printf("The flag '%s' is deprecated use '%s' instead.", flgDNSDisableCP, flgDNSPropagationDisableANS)
 	}

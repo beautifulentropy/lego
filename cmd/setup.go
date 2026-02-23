@@ -25,11 +25,7 @@ const filePerm os.FileMode = 0o600
 
 // setupClient creates a new client with challenge settings.
 func setupClient(ctx *cli.Context, account *Account, keyType certcrypto.KeyType) *lego.Client {
-	client := newClient(ctx, account, keyType)
-
-	setupChallenges(ctx, client)
-
-	return client
+	return newClient(ctx, account, keyType)
 }
 
 func setupAccount(ctx *cli.Context, accountsStorage *AccountsStorage) (*Account, certcrypto.KeyType) {

@@ -180,6 +180,7 @@ func renewForDomains(ctx *cli.Context, account *Account, keyType certcrypto.KeyT
 
 	if !ctx.Bool(flgARIDisable) {
 		client = setupClient(ctx, account, keyType)
+		setupChallenges(ctx, client, account)
 
 		ariRenewalTime = getARIRenewalTime(ctx, cert, domain, client)
 		if ariRenewalTime != nil {
@@ -209,6 +210,7 @@ func renewForDomains(ctx *cli.Context, account *Account, keyType certcrypto.KeyT
 
 	if client == nil {
 		client = setupClient(ctx, account, keyType)
+		setupChallenges(ctx, client, account)
 	}
 
 	// This is just meant to be informal for the user.
@@ -307,6 +309,7 @@ func renewForCSR(ctx *cli.Context, account *Account, keyType certcrypto.KeyType,
 
 	if !ctx.Bool(flgARIDisable) {
 		client = setupClient(ctx, account, keyType)
+		setupChallenges(ctx, client, account)
 
 		ariRenewalTime = getARIRenewalTime(ctx, cert, domain, client)
 		if ariRenewalTime != nil {
@@ -331,6 +334,7 @@ func renewForCSR(ctx *cli.Context, account *Account, keyType certcrypto.KeyType,
 
 	if client == nil {
 		client = setupClient(ctx, account, keyType)
+		setupChallenges(ctx, client, account)
 	}
 
 	// This is just meant to be informal for the user.

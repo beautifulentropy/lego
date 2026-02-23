@@ -32,6 +32,20 @@ func TestByType(t *testing.T) {
 	assert.Equal(t, expected, challenges)
 }
 
+func TestByType_DNSPersistPreference(t *testing.T) {
+	challenges := []acme.Challenge{
+		{Type: "dns-persist-01"}, {Type: "dns-01"},
+	}
+
+	sort.Sort(byType(challenges))
+
+	expected := []acme.Challenge{
+		{Type: "dns-01"}, {Type: "dns-persist-01"},
+	}
+
+	assert.Equal(t, expected, challenges)
+}
+
 func TestValidate(t *testing.T) {
 	var statuses []string
 

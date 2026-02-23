@@ -12,44 +12,52 @@ import (
 
 // Flag names.
 const (
-	flgDomains                  = "domains"
-	flgServer                   = "server"
-	flgAcceptTOS                = "accept-tos"
-	flgEmail                    = "email"
-	flgDisableCommonName        = "disable-cn"
-	flgCSR                      = "csr"
-	flgEAB                      = "eab"
-	flgKID                      = "kid"
-	flgHMAC                     = "hmac"
-	flgKeyType                  = "key-type"
-	flgFilename                 = "filename"
-	flgPath                     = "path"
-	flgHTTP                     = "http"
-	flgHTTPPort                 = "http.port"
-	flgHTTPDelay                = "http.delay"
-	flgHTTPProxyHeader          = "http.proxy-header"
-	flgHTTPWebroot              = "http.webroot"
-	flgHTTPMemcachedHost        = "http.memcached-host"
-	flgHTTPS3Bucket             = "http.s3-bucket"
-	flgTLS                      = "tls"
-	flgTLSPort                  = "tls.port"
-	flgTLSDelay                 = "tls.delay"
-	flgDNS                      = "dns"
-	flgDNSDisableCP             = "dns.disable-cp"
-	flgDNSPropagationWait       = "dns.propagation-wait"
-	flgDNSPropagationDisableANS = "dns.propagation-disable-ans"
-	flgDNSPropagationRNS        = "dns.propagation-rns"
-	flgDNSResolvers             = "dns.resolvers"
-	flgHTTPTimeout              = "http-timeout"
-	flgTLSSkipVerify            = "tls-skip-verify"
-	flgDNSTimeout               = "dns-timeout"
-	flgPEM                      = "pem"
-	flgPFX                      = "pfx"
-	flgPFXPass                  = "pfx.pass"
-	flgPFXFormat                = "pfx.format"
-	flgCertTimeout              = "cert.timeout"
-	flgOverallRequestLimit      = "overall-request-limit"
-	flgUserAgent                = "user-agent"
+	flgDomains                         = "domains"
+	flgServer                          = "server"
+	flgAcceptTOS                       = "accept-tos"
+	flgEmail                           = "email"
+	flgDisableCommonName               = "disable-cn"
+	flgCSR                             = "csr"
+	flgEAB                             = "eab"
+	flgKID                             = "kid"
+	flgHMAC                            = "hmac"
+	flgKeyType                         = "key-type"
+	flgFilename                        = "filename"
+	flgPath                            = "path"
+	flgHTTP                            = "http"
+	flgHTTPPort                        = "http.port"
+	flgHTTPDelay                       = "http.delay"
+	flgHTTPProxyHeader                 = "http.proxy-header"
+	flgHTTPWebroot                     = "http.webroot"
+	flgHTTPMemcachedHost               = "http.memcached-host"
+	flgHTTPS3Bucket                    = "http.s3-bucket"
+	flgTLS                             = "tls"
+	flgTLSPort                         = "tls.port"
+	flgTLSDelay                        = "tls.delay"
+	flgDNS                             = "dns"
+	flgDNSDisableCP                    = "dns.disable-cp"
+	flgDNSPropagationWait              = "dns.propagation-wait"
+	flgDNSPropagationDisableANS        = "dns.propagation-disable-ans"
+	flgDNSPropagationRNS               = "dns.propagation-rns"
+	flgDNSResolvers                    = "dns.resolvers"
+	flgDNSPersist                      = "dns-persist"
+	flgDNSPersistIssuerDomainName      = "dns-persist.issuer-domain-name"
+	flgDNSPersistPersistUntil          = "dns-persist.persist-until"
+	flgDNSPersistResolvers             = "dns-persist.resolvers"
+	flgDNSPersistTimeout               = "dns-persist.timeout"
+	flgDNSPersistPropagationWait       = "dns-persist.propagation-wait"
+	flgDNSPersistPropagationDisableANS = "dns-persist.propagation-disable-ans"
+	flgDNSPersistPropagationRNS        = "dns-persist.propagation-rns"
+	flgHTTPTimeout                     = "http-timeout"
+	flgTLSSkipVerify                   = "tls-skip-verify"
+	flgDNSTimeout                      = "dns-timeout"
+	flgPEM                             = "pem"
+	flgPFX                             = "pfx"
+	flgPFXPass                         = "pfx.pass"
+	flgPFXFormat                       = "pfx.format"
+	flgCertTimeout                     = "cert.timeout"
+	flgOverallRequestLimit             = "overall-request-limit"
+	flgUserAgent                       = "user-agent"
 )
 
 const (
@@ -202,6 +210,36 @@ func CreateFlags(defaultPath string) []cli.Flag {
 				" Supported: host:port." +
 				" The default is to use the system resolvers, or Google's DNS resolvers if the system's cannot be determined.",
 		},
+		&cli.BoolFlag{
+			Name:  flgDNSPersist,
+			Usage: "Use the DNS-PERSIST-01 challenge to solve challenges. Manual verification only. Can be mixed with other types of challenges.",
+		},
+		&cli.StringFlag{
+			Name:  flgDNSPersistIssuerDomainName,
+			Usage: "Override the issuer-domain-name to use for DNS-PERSIST-01 when multiple are offered. Must be offered by the challenge.",
+		},
+		&cli.StringFlag{
+			Name:  flgDNSPersistPersistUntil,
+			Usage: "Set optional persistUntil for DNS-PERSIST-01 records as an RFC3339 timestamp (for example 2026-03-01T00:00:00Z).",
+		},
+		&cli.StringSliceFlag{
+			Name: flgDNSPersistResolvers,
+			Usage: "Set the resolvers to use for DNS-PERSIST-01 TXT lookups." +
+				" Supported: host:port." +
+				" The default is to use the system resolvers, or Google's DNS resolvers if the system's cannot be determined.",
+		},
+		&cli.BoolFlag{
+			Name:  flgDNSPersistPropagationDisableANS,
+			Usage: "By setting this flag to true, disables the need to await propagation of the DNS-PERSIST-01 TXT record to all authoritative name servers.",
+		},
+		&cli.BoolFlag{
+			Name:  flgDNSPersistPropagationRNS,
+			Usage: "By setting this flag to true, use all the recursive nameservers to check propagation of the DNS-PERSIST-01 TXT record.",
+		},
+		&cli.DurationFlag{
+			Name:  flgDNSPersistPropagationWait,
+			Usage: "By setting this flag, disables all the propagation checks of the DNS-PERSIST-01 TXT record and uses a wait duration instead.",
+		},
 		&cli.IntFlag{
 			Name:  flgHTTPTimeout,
 			Usage: "Set the HTTP timeout value to a specific value in seconds.",
@@ -214,6 +252,10 @@ func CreateFlags(defaultPath string) []cli.Flag {
 			Name:  flgDNSTimeout,
 			Usage: "Set the DNS timeout value to a specific value in seconds. Used only when performing authoritative name server queries.",
 			Value: 10,
+		},
+		&cli.IntFlag{
+			Name:  flgDNSPersistTimeout,
+			Usage: "Set the DNS timeout value to a specific value in seconds for DNS-PERSIST-01 lookups.",
 		},
 		&cli.BoolFlag{
 			Name:  flgPEM,

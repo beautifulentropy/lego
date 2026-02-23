@@ -84,7 +84,7 @@ func (c *Challenge) PreSolve(authz acme.Authorization) error {
 	}
 
 	if c.provider == nil {
-		return fmt.Errorf("[%s] acme: no DNS Provider configured", domain)
+		return fmt.Errorf("[%s] acme: no DNS Provider configured for DNS-01", domain)
 	}
 
 	// Generate the Key Authorization for the challenge
@@ -95,7 +95,7 @@ func (c *Challenge) PreSolve(authz acme.Authorization) error {
 
 	err = c.provider.Present(authz.Identifier.Value, chlng.Token, keyAuth)
 	if err != nil {
-		return fmt.Errorf("[%s] acme: error presenting token: %w", domain, err)
+		return fmt.Errorf("[%s] acme: error presenting DNS-01 token: %w", domain, err)
 	}
 
 	return nil
@@ -127,14 +127,14 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 		timeout, interval = DefaultPropagationTimeout, DefaultPollingInterval
 	}
 
-	log.Infof("[%s] acme: Checking DNS record propagation. [nameservers=%s]", domain, strings.Join(recursiveNameservers, ","))
+	log.Infof("[%s] acme: Checking DNS-01 record propagation. [nameservers=%s]", domain, strings.Join(recursiveNameservers, ","))
 
 	time.Sleep(interval)
 
 	err = wait.For("propagation", timeout, interval, func() (bool, error) {
 		stop, errP := c.preCheck.call(domain, info.EffectiveFQDN, info.Value)
 		if !stop || errP != nil {
-			log.Infof("[%s] acme: Waiting for DNS record propagation.", domain)
+			log.Infof("[%s] acme: Waiting for DNS-01 record propagation.", domain)
 		}
 
 		return stop, errP

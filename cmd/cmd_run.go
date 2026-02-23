@@ -130,6 +130,8 @@ func run(ctx *cli.Context) error {
 		fmt.Printf(rootPathWarningMessage, accountsStorage.GetRootPath())
 	}
 
+	setupChallenges(ctx, client, account)
+
 	certsStorage := NewCertificatesStorage(ctx)
 	certsStorage.CreateRootFolder()
 
